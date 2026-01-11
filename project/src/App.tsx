@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import Cartainicial from './components/CartaInicial'
-import Modal from './components/modal'
+import Modal from './components/Modal'
 import type { Carta } from './assets/types/types'
 
 const cartas: Carta[] = [
@@ -48,7 +48,7 @@ const cartas: Carta[] = [
   {
     id: 6,
     name: "Obanai",
-    ataque: 8900,
+    ataque: 7500,
     defensa: 8800,
     img: "https://wallpapers4screen.com/Uploads/23-3-2025/70406/thumb2-obanai-iguro-4k-heterochromia-kimetsu-no-yaiba-sword.jpg",
     descripcion: "Maestro de la Respiración de la Serpiente. Utiliza una espada flamberge (ondulada) que serpentea y cambia de dirección de forma impredecible. Su estilo se basa en la flexibilidad extrema y ataques que se deslizan por aberturas imposibles. Cuenta con la ayuda de su serpiente, Kaburamaru, que actúa como sus ojos para predecir movimientos enemigos con precisión quirúrgica."
@@ -56,8 +56,8 @@ const cartas: Carta[] = [
   {
     id: 7,
     name: "Gojo",
-    ataque: 9100,
-    defensa: 8500,
+    ataque: 10000,
+    defensa: 9000,
     img: "https://www.pictorem.com/uploads/collection/C/CT6MGA1OBR/900_Tokyo-Revengers_pt2.jpg",
     descripcion: "Poseedor del Ilimitado y los Seis Ojos. Su habilidad pasiva, el Infinito, impide que cualquier ataque lo toque físicamente. Utiliza técnicas espaciales: Azul (atracción), Rojo (repulsión) y Púrpura (borrado de materia). Su expansión de dominio, Vacío Infinito, sobrecarga la mente del enemigo con información infinita, dejándolo totalmente paralizado."
   },
@@ -80,24 +80,24 @@ const cartas: Carta[] = [
   {
     id: 10,
     name: "Gust",
-    ataque: 8900,
-    defensa: 8800,
+    ataque: 9000,
+    defensa: 7000,
     img: "https://buffetcritico.wordpress.com/wp-content/uploads/2015/09/prototype_guts.png",
     descripcion: "Combatiente de fuerza sobrehumana especializado en el uso de la Matadragones, una espada colosal capaz de cortar entidades físicas y espirituales. Utiliza la Armadura de Berserker, que elimina los límites de dolor y miedo, forzando su cuerpo más allá del límite humano. Su arsenal incluye un brazo protésico con un cañón oculto, una ballesta de repetición y diversas bombas de pólvora."
   },
   {
     id: 11,
     name: "Yami Sukehiro",
-    ataque: 9100,
-    defensa: 8500,
+    ataque: 10000,
+    defensa: 10000,
     img: "https://posterwa.com/cdn/shop/files/BLACKC12.jpg?v=1686076906",
     descripcion: "Maestro de la Magia de Oscuridad. Utiliza su magia para encantar su katana, permitiéndole absorber ataques enemigos y realizar cortes dimensionales que atraviesan el espacio. Se especializa en el combate físico reforzado con Ki, una técnica sensorial que le permite leer y reaccionar a los movimientos enemigos instantáneamente. Su ataque definitivo, el Corte Dimensional, es capaz de cortar literalmente cualquier cosa, incluyendo dimensiones."
   },
   {
     id: 12,
     name: "Sukuna",
-    ataque: 9200,
-    defensa: 8000,
+    ataque: 9780,
+    defensa: 9000,
     img: "https://i.pinimg.com/736x/9a/0a/65/9a0a6522048025ed021d6d14c3cd2707.jpg",
     descripcion: "Maestro del Santuario. Su técnica se basa en ataques de corte invisibles: Desmantelar (para objetos inanimados) y Cleave (que se ajusta a la resistencia del enemigo). Posee la técnica de fuego Fuga y una capacidad de curación casi instantánea mediante la Técnica de Maldición Inversa. Su Expansión de Dominio, Relicario Malévolo, es única por no tener barreras, permitiéndole rebanar todo en un radio de hasta 200 metros.."
   }
