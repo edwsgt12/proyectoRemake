@@ -3,6 +3,7 @@ import './App.css'
 import Cartainicial from './components/CartaInicial'
 import Modal from './components/Modal'
 import type { Carta } from './assets/types/types'
+import ListaCartas from './components/ListaCartas'
 
 const cartas: Carta[] = [
   {
@@ -104,43 +105,12 @@ const cartas: Carta[] = [
 ]
 
 function App() {
-  const [cartaSeleccionada, setCartaSeleccionada] = useState<Carta | null>(null)
-  const [modalAbierto, setModalAbierto] = useState(false)
-
-  const abrirModal = (carta: Carta) => {
-    setCartaSeleccionada(carta)
-    setModalAbierto(true)
-  }
-
-  const cerrarModal = () => {
-    setModalAbierto(false)
-    setCartaSeleccionada(null)
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-800 to-black p-8">
-      <h1 className="text-4xl font-bold text-center mb-10 text-yellow-400">
-        CARTAS DE PERSONAJES
-      </h1>
-      
-      <div className="flex flex-wrap justify-center gap-8">
-        {cartas.map((carta) => (
-          <Cartainicial
-            key={carta.id}
-            {...carta}
-            onClick={() => abrirModal(carta)}
-          />
-        ))}
-      </div>
-
-      {modalAbierto && cartaSeleccionada && (
-        <Modal
-          carta={cartaSeleccionada}
-          onClose={cerrarModal}
-        />
-      )}
+    <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>
+    <ListaCartas cartas={cartas} />
     </div>
-  )
+  );
+
 }
 
 export default App
