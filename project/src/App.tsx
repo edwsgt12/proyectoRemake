@@ -1,7 +1,4 @@
-import { useState } from 'react'
 import './App.css'
-import Cartainicial from './components/CartaInicial'
-import Modal from './components/Modal'
 import type { Carta } from './assets/types/types'
 import ListaCartas from './components/ListaCartas'
 
