@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import './App.css'
 import type { Carta } from './assets/types/types'
 import ListaCartas from './components/ListaCartas'
+import FormularioCarta from './components/crearCarta'
 
-const cartas: Carta[] = [
+const cartasDefault: Carta[] = [
   {
     id: 1,
     name: "Deku",
@@ -102,9 +104,24 @@ const cartas: Carta[] = [
 ]
 
 function App() {
+  const [formularioMostrar, setFormularioMostrar] = useState(false)
+  const [cartas,setCartas] =useState< Carta[]>(cartasDefault)
+
+  const onCrear =(carta:Carta)=>{
+    setCartas([...cartas,carta])
+  }
+
+  const toggleMostrarFormulario = ()=> {
+    setFormularioMostrar(!formularioMostrar)
+  }
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>
-    <ListaCartas cartas={cartas} />
+    <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>\
+
+    {formularioMostrar ? (
+  <FormularioCarta onCrear={onCrear}  toggleMostrarFormulario={toggleMostrarFormulario} cantidadCartas={cartas.length} />
+  ) : (
+  <ListaCartas cartas={cartas} toggleMostrarFormulario={toggleMostrarFormulario}/>
+  )}
     </div>
   );
 
