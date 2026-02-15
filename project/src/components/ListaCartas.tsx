@@ -30,7 +30,7 @@ const ListaCartas =({cartas, toggleMostrarFormulario}: {cartas: Carta[], toggleM
   <div className=" flex items-center gap-x-4">    
 
     <button onClick={toggleMostrarFormulario} 
-    className="rounded-lg bg-yellow-500 text-black text-2x font-bold w-10 h-10 flex items-center justify-center cursor-pointer"> <FaPlus/> </button>
+    className="rounded-lg bg-yellow-500 text-black text-2x font-bold w-10 h-10 flex items-center justify-center shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden"> <FaPlus/> </button>
     
 
       <input
