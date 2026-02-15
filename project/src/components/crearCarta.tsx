@@ -1,6 +1,5 @@
 import { useState } from "react";
-import {RiAddLine, RiImageAddLine} from "react-icons/ri";
-import { BsFeather } from "react-icons/bs";
+import {RiImageAddLine} from "react-icons/ri";
 import { FaTimes } from "react-icons/fa";
 import type { Carta } from "../assets/types/types";
 
