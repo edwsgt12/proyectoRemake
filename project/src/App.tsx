@@ -66,7 +66,7 @@ const cartasDefault: Carta[] = [
     name: "Levi Ackerman",
     ataque: 9200,
     defensa: 8000,
-    img: "https://neuro-class.com/wp-content/uploads/2025/02/image-52-1024x691.png",
+    img: "https://server.wallpaperalchemy.com/storage/wallpapers/167/levi-ackerman-attack-on-titan-4k-wallpaper.jpg",
     descripcion: "El soldado más fuerte de la humanidad. Especialista en equipamiento de maniobras tridimensionales. Limpieza extrema incluída."
   },
   {
