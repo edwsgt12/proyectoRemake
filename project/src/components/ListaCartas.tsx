@@ -3,14 +3,15 @@ import Cartainicial from "./CartaInicial";
 import { useState } from "react";
 import Modal from "./Modal"; 
 import { FaPlus } from "react-icons/fa";
+import { Link } from "react-router";
 
-const ListaCartas =({cartas, toggleMostrarFormulario}: {cartas: Carta[], toggleMostrarFormulario: () => void}) => {
+const ListaCartas =({cartas}: {cartas: Carta[]}) => {
     
   const [busqueda, setBusqueda] = useState('')
   const [cartaSeleccionada, setCartaSeleccionada] = useState<Carta | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
 
-  const abrirModal = (carta: Carta) => {
+  const abrirModal = (carta: Carta) => {  
     setCartaSeleccionada(carta)
     setModalAbierto(true)
   }
@@ -29,8 +30,11 @@ const ListaCartas =({cartas, toggleMostrarFormulario}: {cartas: Carta[], toggleM
 
   <div className=" flex items-center gap-x-4">    
 
-    <button onClick={toggleMostrarFormulario} 
-    className="rounded-lg bg-yellow-500 text-black text-2x font-bold w-10 h-10 flex items-center justify-center shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden"> <FaPlus/> </button>
+    <Link to={"/crearCarta"}>
+    <button 
+    className="rounded-lg bg-yellow-500 text-black text-2x font-bold w-10 h-10 flex items-center justify-center shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden"> <FaPlus/> 
+    </button>
+    </Link>
     
 
       <input

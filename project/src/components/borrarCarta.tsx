@@ -1,0 +1,5 @@
+const borrarCarta = () => {
+    return (
+
+    )
+}

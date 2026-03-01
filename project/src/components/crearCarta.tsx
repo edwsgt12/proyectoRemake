@@ -2,8 +2,9 @@ import { useState } from "react";
 import {RiImageAddLine} from "react-icons/ri";
 import { FaTimes } from "react-icons/fa";
 import type { Carta } from "../assets/types/types";
+import { Link } from "react-router";
 
-const FormularioCarta = ({onCrear,toggleMostrarFormulario,cantidadCartas}: {onCrear: (carta: Carta) => void,toggleMostrarFormulario: () => void,cantidadCartas:number}) => {
+const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => void,cantidadCartas:number}) => {
     const [formData, setFormData] = useState<Carta>({
         ataque: 0,
         defensa: 0,
@@ -30,9 +31,9 @@ const FormularioCarta = ({onCrear,toggleMostrarFormulario,cantidadCartas}: {onCr
 
         <div className="max-w-2xl mx-auto bg-black/40 backdrop-blur-xl p-8 rounded-x1 border border-grey shadow-2xl mb-12">
             <div className="flex items-center gap-3 mb-8">
-                <FaTimes className="text-yellow-400 shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden" 
-                onClick={toggleMostrarFormulario}
-                />
+                <Link to={"/"}>
+                <FaTimes className="text-yellow-400 shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden" />
+                </Link>
                 <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
                 Crea <span className="text-yellow-400">Una</span> Nueva <span className="text-yellow-400">Carta</span>
                 </h2>

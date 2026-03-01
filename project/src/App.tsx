@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import './App.css'
 import type { Carta } from './assets/types/types'
-import ListaCartas from './components/ListaCartas'
 import FormularioCarta from './components/crearCarta'
+import { Route, Routes } from 'react-router'
+import Home from './pages/Home'
 
 const cartasDefault: Carta[] = [
   {
@@ -104,26 +105,23 @@ const cartasDefault: Carta[] = [
 ]
 
 function App() {
-  const [formularioMostrar, setFormularioMostrar] = useState(false)
   const [cartas,setCartas] =useState< Carta[]>(cartasDefault)
 
   const onCrear =(carta:Carta)=>{
     setCartas([...cartas,carta])
   }
 
-  const toggleMostrarFormulario = ()=> {
-    setFormularioMostrar(!formularioMostrar)
-  }
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>\
+<div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>
 
-    {formularioMostrar ? (
-  <FormularioCarta onCrear={onCrear}  toggleMostrarFormulario={toggleMostrarFormulario} cantidadCartas={cartas.length} />
-  ) : (
-  <ListaCartas cartas={cartas} toggleMostrarFormulario={toggleMostrarFormulario}/>
-  )}
-    </div>
-  );
+      <Routes>
+        <Route path='/' element={ <Home cartas={cartas} /> } />
+        <Route path='/crearCarta' element={ <FormularioCarta onCrear={onCrear} cantidadCartas={cartas.length} /> } />
+      </Routes>
+</ div>
+      )
+
+
 
 }
 
