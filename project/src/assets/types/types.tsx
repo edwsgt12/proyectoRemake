@@ -5,4 +5,5 @@ ataque: number;
 defensa: number;
 img: string;
 descripcion: string;
+vida: number;
 }

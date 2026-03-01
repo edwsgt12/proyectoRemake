@@ -11,15 +11,20 @@ function Cartainicial({
   defensa,
   img,
   onClick,
+  vida
 }: CartainicialProps) {
   return (
     <div 
       className="bg-gradient-to-br from-gray-900 to-black border-2 border-yellow-500 rounded-2xl p-4 w-64 text-white shadow-2xl hover:scale-105 transition-transform cursor-pointer relative overflow-hidden"
       onClick={onClick}
     >
-
-      <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold rounded-full w-8 h-8 flex items-center justify-center">
-        #{id}
+      <div className="flex justify-between mt-4">
+        <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold rounded-full w-8 h-8 flex items-center justify-center">
+          #{id}
+        </div>
+        <div>
+          Vida:{vida}
+        </div>
       </div>
 
       <div className="mt-6 mb-4 flex justify-center">
