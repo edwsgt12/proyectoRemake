@@ -11,7 +11,6 @@ function Cartainicial({
   defensa,
   img,
   onClick,
-  vida
 }: CartainicialProps) {
   return (
     <div 
@@ -23,7 +22,6 @@ function Cartainicial({
           #{id}
         </div>
         <div>
-          Vida:{vida}
         </div>
       </div>
 
