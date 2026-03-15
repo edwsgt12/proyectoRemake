@@ -4,6 +4,8 @@ import { FaTimes } from "react-icons/fa";
 import type { Carta } from "../assets/types/types";
 import { Link } from "react-router";
 
+const API_URL = 'https://educapi-v2.onrender.com/card';
+
 const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => void,cantidadCartas:number}) => {
     const [formData, setFormData] = useState<Carta>({
         ataque: 0,
