@@ -14,7 +14,8 @@ const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => v
         id:0,
         img:"",
         name:"",
-        vida: 20000
+        vida:20000,
+        tipo:""
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -27,7 +28,8 @@ const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => v
             defensa: 0,
             descripcion: "",
             img: "",
-            vida: 20000
+            vida: 20000,
+            tipo: ""
         });
     };
 
