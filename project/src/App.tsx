@@ -57,23 +57,14 @@ function App() {
             console.error("Error adding task", e);
         }
         };
-
-          const BorrarCarta = (id: number) => {
-          setCartas(cartas.filter(c => c.id !== id));
-        };
-
   return (
 <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>
-
       <Routes>
         <Route path='/' element={ <Home cartas={cartas} /> } />
         <Route path='/crearCarta' element={ <FormularioCarta onCrear={addCarta} cantidadCartas={cartas.length} /> } />
       </Routes>
 </ div>
       )
-
-
-
 }
 
 export default App
