@@ -1,17 +1,20 @@
 import type { Carta } from "../assets/types/types";
-import App from "../App";
-import CartaBorrar from "./borrarCarta";
 
 function Cartainicial({
-  id,
+carta,
+  onDelete, 
+}: {
+  carta:Carta,
+  onDelete: (id: number) => void,
+  onClick: () => void
+}) {
+  const {  id,
   name,
   ataque,
   defensa,
   img,
   vida,
-  onClick,
-  onDelete, 
-}: Carta) {
+  onClick} = carta
 
   return (
 <div 

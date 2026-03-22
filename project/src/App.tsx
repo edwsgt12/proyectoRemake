@@ -10,7 +10,7 @@ import { toApiCardMaper, toCardApiMaper } from './assets/types/types'
 const API_URL = import.meta.env.VITE_CARTAS;
 
 function App() {
-  const [cartas,setCartas] =useState< Carta[]>(cartasDefault)
+  const [cartas,setCartas] =useState< Carta[]>([])
 
   const onCrear =(carta:Carta)=>{
     setCartas([...cartas,carta])
@@ -57,10 +57,13 @@ function App() {
             console.error("Error adding task", e);
         }
         };
+
+
+        
   return (
 <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20'>
       <Routes>
-        <Route path='/' element={ <Home cartas={cartas} /> } />
+        <Route path='/' element={ <Home cartas={cartas}  setCartas={setCartas} fetchCartas={fetchCartas}/> } />
         <Route path='/crearCarta' element={ <FormularioCarta onCrear={addCarta} cantidadCartas={cartas.length} /> } />
       </Routes>
 </ div>

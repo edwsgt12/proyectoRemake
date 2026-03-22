@@ -8,7 +8,6 @@ descripcion: string;
 vida: number;
 tipo?: string;
 onClick?: () => void;
-onDelete: (id: number) => void;
 };
 
 export interface IApiCard {

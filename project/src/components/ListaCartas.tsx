@@ -5,7 +5,9 @@ import Modal from "./Modal";
 import { FaPlus } from "react-icons/fa";
 import { Link } from "react-router";
 
-const ListaCartas =({cartas}: {cartas: Carta[]}) => {
+const API_URL = import.meta.env.VITE_CARTAS;
+
+const ListaCartas =({cartas, setCartas, fetchCartas}  :  {cartas: Carta[], setCartas: React.Dispatch<React.SetStateAction<Carta[]>>, fetchCartas: () => Promise<void>}) => {
     
   const [busqueda, setBusqueda] = useState('')
   const [cartaSeleccionada, setCartaSeleccionada] = useState<Carta | null>(null)
@@ -20,7 +22,21 @@ const ListaCartas =({cartas}: {cartas: Carta[]}) => {
     setModalAbierto(false)
     setCartaSeleccionada(null)
   }
-
+        const BorrarCarta = async (id:number) => {
+        try {
+            await fetch(`${API_URL}/card/${id}` , {
+                method: "DELETE",
+                headers: { 
+                usersecretpasskey :"Edwa735923IA"
+                }
+        });
+            fetchCartas();
+        } catch (e) {
+            console.error("Error adding task", e);
+        }
+        };
+        
+    
   return (
     <div className="px-25">
       <div className="flex items-center justify-between">
@@ -51,8 +67,9 @@ const ListaCartas =({cartas}: {cartas: Carta[]}) => {
         {cartas.filter((carta) => carta.name.toLowerCase().includes(busqueda.toLowerCase())).map((carta) => (
           <Cartainicial
             key={carta.id}
-            {...carta}
+           carta={carta}
             onClick={() => abrirModal(carta)}
+            onDelete={BorrarCarta}
           />
         ))}
       </div>
