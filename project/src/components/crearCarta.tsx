@@ -67,7 +67,11 @@ const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => v
                 required
                 placeholder = "1000"
                 value={formData.ataque}
-                onChange={(e)=> setFormData({...formData, ataque: Number(e.target.value)})}
+                onChange={(e)=> {
+                    if (e.target.value.length<7){
+                        setFormData({...formData, ataque: Number(e.target.value)})
+                    }
+                }}
                 className="bg-white/5 border border-white/10 p-3 rounded-xl text-white focus:ring-2 focus:ring-yellow-500 outline-none"
                 />
             </div>
@@ -79,7 +83,11 @@ const FormularioCarta = ({onCrear,cantidadCartas}: {onCrear: (carta: Carta) => v
                 required
                 placeholder = "1000"
                 value={formData.defensa}
-                onChange={(e)=> setFormData({...formData, defensa: Number(e.target.value)})}
+                onChange={(e)=> {
+                    if (e.target.value.length<7){
+                        setFormData({...formData, defensa: Number(e.target.value)})
+                    }
+                }}
                 className="bg-white/5 border border-white/10 p-3 rounded-xl text-white focus:ring-2 focus:ring-yellow-500 outline-none"
                 />
             </div>

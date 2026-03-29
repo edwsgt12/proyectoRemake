@@ -46,3 +46,9 @@ export const toCardApiMaper = (apicard:IApiCard):Carta => ({
         img:apicard.pictureUrl || "https://nombre.jpn",
         tipo: apicard.attributes?.tipo
 })
+
+export interface EditarCartaProps {
+    onGuardar: (carta: Carta)=> Promise<{success:boolean;error?:any}>;
+    loading?:boolean;
+    cartas: Carta[]
+}

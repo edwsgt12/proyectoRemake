@@ -1,8 +1,8 @@
 import type { Carta } from "../assets/types/types";
-
 function Cartainicial({
 carta,
   onDelete, 
+  onClick
 }: {
   carta:Carta,
   onDelete: (id: number) => void,
@@ -14,7 +14,7 @@ carta,
   defensa,
   img,
   vida,
-  onClick} = carta
+} = carta
 
   return (
 <div 
@@ -69,7 +69,7 @@ carta,
     </div>
     <div className="text-center">
       <div className="text-sm text-gray-400">Vida</div>
-      <div className="text-xl font-bold text-blue-500">{vida}</div>
+      <div className="text-xl font-bold text-green-500">{vida}</div>
     </div>
     <div className="text-center">
       <div className="text-sm text-gray-400">DEFENSA</div>

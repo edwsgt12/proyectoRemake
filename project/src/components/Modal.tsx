@@ -1,4 +1,3 @@
-import { FaUniversalAccess } from "react-icons/fa";
 import type { Carta } from "../assets/types/types";
 
 interface ModalProps {

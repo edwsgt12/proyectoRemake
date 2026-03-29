@@ -13,7 +13,8 @@ const ListaCartas =({cartas, setCartas, fetchCartas}  :  {cartas: Carta[], setCa
   const [cartaSeleccionada, setCartaSeleccionada] = useState<Carta | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
 
-  const abrirModal = (carta: Carta) => {  
+  const abrirModal = (carta: Carta) => {
+    console.log("Aqui ")  
     setCartaSeleccionada(carta)
     setModalAbierto(true)
   }
@@ -68,7 +69,9 @@ const ListaCartas =({cartas, setCartas, fetchCartas}  :  {cartas: Carta[], setCa
           <Cartainicial
             key={carta.id}
            carta={carta}
-            onClick={() => abrirModal(carta)}
+            onClick={() => {
+              abrirModal(carta)
+            }}
             onDelete={BorrarCarta}
           />
         ))}
