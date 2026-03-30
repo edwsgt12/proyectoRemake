@@ -7,7 +7,7 @@ import { Link } from "react-router";
 
 const API_URL = import.meta.env.VITE_CARTAS;
 
-const ListaCartas =({cartas, setCartas, fetchCartas}  :  {cartas: Carta[], setCartas: React.Dispatch<React.SetStateAction<Carta[]>>, fetchCartas: () => Promise<void>}) => {
+const ListaCartas =({cartas, fetchCartas}  :  {cartas: Carta[], setCartas: React.Dispatch<React.SetStateAction<Carta[]>>, fetchCartas: () => Promise<void>}) => {
     
   const [busqueda, setBusqueda] = useState('')
   const [cartaSeleccionada, setCartaSeleccionada] = useState<Carta | null>(null)
@@ -36,8 +36,6 @@ const ListaCartas =({cartas, setCartas, fetchCartas}  :  {cartas: Carta[], setCa
             console.error("Error adding task", e);
         }
         };
-        
-    
   return (
     <div className="px-25">
       <div className="flex items-center justify-between">
