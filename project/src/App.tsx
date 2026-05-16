@@ -6,6 +6,7 @@ import EditarCarta from './components/actualizarCarta'
 import { Route, Routes } from 'react-router'
 import Home from './pages/Home'
 import { toApiCardMaper, toCardApiMaper } from './assets/types/types'
+import SeleccionarCartas from './components/SeleccionarCarta'
 
 const API_URL = import.meta.env.VITE_CARTAS;
 
@@ -92,6 +93,11 @@ function App() {
         <Route 
           path='/editar/:id' 
           element={<EditarCarta cartas={cartas} onGuardar={updateCarta} loading={loading} />} 
+        />
+
+        <Route
+        path='/seleccionar-cartas'
+        element={<SeleccionarCartas mazo={cartas} loading={loading} />}
         />
       </Routes>
     </div>
