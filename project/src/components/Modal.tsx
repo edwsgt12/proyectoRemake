@@ -5,9 +5,11 @@ import { FaPlus } from "react-icons/fa";
 interface ModalProps {
     carta: Carta;
     onClose: () => void;
+    seleccionarCartaParaBatalla: (carta: Carta) => void; // 👈 Nueva propiedad
+    estaSeleccionada: boolean; // 👈 Nueva propiedad
 }
 
-function Modal({ carta, onClose }: ModalProps) {
+function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }: ModalProps) {
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -45,7 +47,7 @@ function Modal({ carta, onClose }: ModalProps) {
                             <span className="bg-yellow-500 text-black font-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg shadow-yellow-500/20 text-sm">
                                 #{carta.id}
                             </span>
-                            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter italic">
+                            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
                                 {carta.name}
                             </h2>
                         </div>
@@ -96,12 +98,31 @@ function Modal({ carta, onClose }: ModalProps) {
                             </Link>
                         </div>
 
-                        {/* Puntos decorativos */}
-                        <div className="mt-4 flex gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-500/50"></div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500/50"></div>
+                        {/* Footer del Modal: Puntos decorativos y Botón Seleccionar Batalla */}
+                        <div className="mt-4 flex items-center justify-between">
+                            {/* Puntos decorativos */}
+                            <div className="flex gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-500/50"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500/50"></div>
+                            </div>
+
+                            {/* ⚔️ Botón de Selección para la Batalla */}
+                            <button
+                                onClick={() => {
+                                    seleccionarCartaParaBatalla(carta);
+                                    onClose(); // Cierra el modal automáticamente al cambiar el estado
+                                }}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase italic tracking-tighter transition-all active:scale-95 shadow-md ${
+                                    estaSeleccionada
+                                        ? "bg-red-950 text-red-400 border border-red-500/40 hover:bg-red-900"
+                                        : "bg-blue-600 text-white border border-blue-400/20 hover:bg-blue-500 shadow-blue-500/10"
+                                }`}
+                            >
+                                {estaSeleccionada ? "❌ Quitar de Batalla" : "⚔️ Elegir para Batalla"}
+                            </button>
                         </div>
+
                     </div>
                 </div>
             </div>
