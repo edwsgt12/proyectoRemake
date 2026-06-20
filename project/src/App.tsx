@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import CampoBatalla from './pages/CampoBatalla'
 import { toApiCardMaper, toCardApiMaper } from './assets/types/types'
 import SeleccionarCartas from './components/SeleccionarCarta'
+import GenerarCartaIA from './components/generarCarta'
 
 const API_URL = import.meta.env.VITE_CARTAS;
 
@@ -136,6 +137,11 @@ function App() {
           path='/editar/:id' 
           element={<EditarCarta cartas={cartas} onGuardar={updateCarta} loading={loading} />} 
         />
+
+        <Route 
+          path='/generar-carta-ia' 
+          element={<GenerarCartaIA />} 
+        />  
 
         <Route
           path='/seleccionar-cartas'

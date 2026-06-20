@@ -67,6 +67,13 @@ const ListaCartas = ({
               <FaPlus/> 
             </button>
           </Link>
+          <Link to={"/generar-carta-ia"}>
+            <button 
+              className="rounded-lg bg-yellow-500 text-black text-2x font-bold w-10 h-10 flex items-center justify-center shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden"
+            > 
+              <FaPlus/> 
+            </button>
+          </Link>
           
           <input
             type="text"
