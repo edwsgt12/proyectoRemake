@@ -2,25 +2,48 @@ import { useState, useEffect } from "react";
 import { 
   RiImageAddLine, RiShieldLine, RiSwordLine, RiHistoryLine, 
   RiSaveLine, RiLoader4Line, RiCheckLine, RiErrorWarningLine,
-  RiArrowLeftLine, RiHeartFill
+  RiArrowLeftLine, RiHeartFill, RiMagicLine, RiFlashlightLine,
+  RiTeamLine
 } from "react-icons/ri";
 import { useNavigate, useParams } from 'react-router';
-import type { Carta, EditarCartaProps } from '../assets/types/types';
 
-const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) => {
+// Importaciones de los tipos y diccionarios centralizados
+import type { Carta, EditarCartaProps } from '../assets/types/types';
+import { 
+  MAPA_TIPO_A_GRUPO, 
+  type TipoCarta 
+} from '../assets/types/atributosCartas';
+
+// 1. Extraemos las familias únicas disponibles
+const FAMILIAS_UNICAS = Array.from(new Set(Object.values(MAPA_TIPO_A_GRUPO)));
+
+// 2. Creamos un mapa inverso para agrupar los tipos por familia fácilmente
+const MAPA_GRUPO_A_TIPOS = Object.entries(MAPA_TIPO_A_GRUPO).reduce((acc, [tipo, grupo]) => {
+  if (!acc[grupo]) acc[grupo] = [];
+  acc[grupo].push(tipo as TipoCarta);
+  return acc;
+}, {} as Record<string, TipoCarta[]>);
+
+export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
   
   const [error, setError] = useState<string | null>(null);  
   const [success, setSuccess] = useState(false);
   
-  // Buscamos la carta inicial
+  // Buscamos la carta inicial dentro del array que llega por props
   const cartaInicial = cartas.find(c => c.id === parseInt(id || ''));
   const [formData, setFormData] = useState<Carta | null>(cartaInicial || null);
 
+  // Estado local para manejar la familia seleccionada en el primer selector
+  const [familiaSeleccionada, setFamiliaSeleccionada] = useState<string>("");
+
   // Efecto para asegurar que los datos carguen si las props cambian
   useEffect(() => {
-    if (cartaInicial) setFormData(cartaInicial);
+    if (cartaInicial) {
+      setFormData(cartaInicial);
+      setFamiliaSeleccionada(cartaInicial.grupo || MAPA_TIPO_A_GRUPO[cartaInicial.tipo] || FAMILIAS_UNICAS[0]);
+    }
   }, [cartaInicial]);
 
   if (!formData) {
@@ -28,14 +51,30 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
         <RiErrorWarningLine className="text-amber-500 text-6xl mb-4" />
         <h2 className="text-2xl font-bold">CARTA NO ENCONTRADA</h2>
-        <button onClick={() => navigate('/')} className="mt-4 text-amber-500 underline">Volver al inicio</button>
+        <button type="button" onClick={() => navigate('/')} className="mt-4 text-amber-500 underline">Volver al inicio</button>
       </div>
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleFamiliaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nuevaFamilia = e.target.value;
+    setFamiliaSeleccionada(nuevaFamilia);
+
+    // Al cambiar la familia, seleccionamos automáticamente el primer tipo disponible de esa lista filtrada
+    const tiposFiltrados = MAPA_GRUPO_A_TIPOS[nuevaFamilia] || [];
+    if (tiposFiltrados.length > 0) {
+      setFormData(prev => prev ? ({
+        ...prev,
+        grupo: nuevaFamilia as any, // Asignación segura para evitar fricciones de tipo estricto
+        tipo: tiposFiltrados[0] as any
+      }) : null);
+    }
+    if (error) setError(null);
+  };
+
+  // Soportamos selectores en el manejador de cambios general
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // Convertir a número si el campo es de stats
     const numericFields = ['ataque', 'defensa', 'vida'];
     
     setFormData(prev => prev ? ({
@@ -48,12 +87,24 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData) return;
+
     if (!formData.name.trim() || !formData.descripcion.trim()) {
       setError("El nombre y la descripción son obligatorios.");
       return;
     }
 
-    const result = await onGuardar(formData);
+    // Aseguramos que el grupo guardado sea el correcto según el tipo final asignado
+    const grupoAsignado = MAPA_TIPO_A_GRUPO[formData.tipo] || familiaSeleccionada;
+
+    const cartaActualizada: Carta = {
+      ...formData,
+      grupo: grupoAsignado,
+      nivel: formData.nivel || 1
+    };
+
+    const result = await onGuardar(cartaActualizada);
     if (result.success) {
       setSuccess(true);
       setTimeout(() => navigate('/'), 1500);
@@ -61,6 +112,9 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
       setError("Error al conectar con la API.");
     }
   };
+
+  // Obtenemos dinámicamente la lista de tipos correspondientes a la familia activa
+  const tiposDisponiblesFiltrados = MAPA_GRUPO_A_TIPOS[familiaSeleccionada] || [];
 
   return (
     <div className="min-h-screen w-full bg-[#050505] text-gray-200 p-4 md:p-10 flex items-center justify-center font-sans">
@@ -72,9 +126,9 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
 
       <div className="relative z-10 w-full max-w-5xl bg-[#111111] border border-white/10 rounded-3xl shadow-2xl overflow-hidden grid md:grid-cols-12">
         
-        {/* Lado Izquierdo: Previsualización o Info */}
+        {/* Lado Izquierdo: Previsualización */}
         <div className="md:col-span-4 bg-[#161616] p-8 border-r border-white/5 flex flex-col justify-center items-center text-center">
-            <div className="relative group mb-6">
+            <div className="relative group mb-6 w-full">
                 <div className="absolute -inset-1 bg-gradient-to-b from-amber-500 to-amber-900 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
                 <img 
                     src={formData.img} 
@@ -83,7 +137,15 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
                 />
             </div>
             <h3 className="text-amber-500 font-black italic text-xl tracking-tighter uppercase">{formData.name || "Sin nombre"}</h3>
-            <p className="text-white/40 text-xs mt-2 font-mono uppercase tracking-widest">Previsualización de Enlace</p>
+            <div className="flex flex-col gap-1 items-center mt-2">
+              <span className="text-[10px] font-mono uppercase bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-full">
+                {formData.tipo || 'Hechicero'}
+              </span>
+              <span className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                Nivel {formData.nivel || 1}
+              </span>
+            </div>
+            <p className="text-white/40 text-xs mt-4 font-mono uppercase tracking-widest">Previsualización de Enlace</p>
         </div>
 
         {/* Lado Derecho: Formulario */}
@@ -96,7 +158,7 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
               </h1>
               <p className="text-white/30 text-xs font-mono mt-1 ml-11">SISTEMA DE ACTUALIZACIÓN DE LORE V2.0</p>
             </div>
-            <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+            <button type="button" onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-colors">
               <RiArrowLeftLine className="text-2xl text-white/50" />
             </button>
           </header>
@@ -129,6 +191,85 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
                 <label className="text-[9px] font-bold text-green-400 uppercase flex items-center gap-1 mb-2"><RiHeartFill/> Vida</label>
                 <input type="number" name="vida" value={formData.vida} onChange={handleChange} className="bg-transparent text-xl font-bold w-full outline-none text-white" />
               </div>
+            </div>
+
+            {/* Selectores de Atributos del Sistema (Facciones, Clases y Metas) */}
+            <div className="space-y-4 bg-white/2 p-4 rounded-2xl border border-white/5">
+              
+              {/* Fila superior: Selectores de Familia y Tipo filtrado */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-amber-500 uppercase flex items-center gap-1 mb-1">
+                    <RiTeamLine /> Familia / Facción
+                  </label>
+                  <select
+                    value={familiaSeleccionada}
+                    onChange={handleFamiliaChange}
+                    className="w-full bg-[#161616] border border-white/10 p-2.5 rounded-xl text-xs font-medium text-white outline-none focus:border-amber-500/50 transition-all cursor-pointer"
+                  >
+                    {FAMILIAS_UNICAS.map((familia) => (
+                      <option key={familia} value={familia}>
+                        🛡️ {familia}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-amber-500 uppercase flex items-center gap-1 mb-1">
+                    <RiMagicLine /> Tipo Específico
+                  </label>
+                  <select
+                    name="tipo"
+                    value={formData.tipo}
+                    onChange={handleChange}
+                    className="w-full bg-[#161616] border border-white/10 p-2.5 rounded-xl text-xs font-medium text-white outline-none focus:border-amber-500/50 transition-all cursor-pointer"
+                  >
+                    {tiposDisponiblesFiltrados.map((tipo) => (
+                      <option key={tipo} value={tipo}>
+                        ✨ {tipo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Fila inferior: Metas de Combate */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-purple-400 uppercase flex items-center gap-1 mb-1">
+                    <RiFlashlightLine /> Meta Ulti
+                  </label>
+                  <select
+                    name="tipoUlti"
+                    value={formData.tipoUlti || 'Daño'}
+                    onChange={handleChange}
+                    className="w-full bg-[#161616] border border-white/10 p-2.5 rounded-xl text-xs font-medium text-white outline-none focus:border-purple-500/50 transition-all cursor-pointer"
+                  >
+                    <option value="Daño">💥 Daño Directo</option>
+                    <option value="Curación">🩸 Curación</option>
+                    <option value="Efecto de Estado">🧪 Estado Alterado</option>
+                    <option value="Buff/Debuff">⚡ Potenciador</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-blue-400 uppercase flex items-center gap-1 mb-1">
+                    <RiShieldLine /> Meta Defensiva
+                  </label>
+                  <select
+                    name="tipoDefensiva"
+                    value={formData.tipoDefensiva || 'Escudo'}
+                    onChange={handleChange}
+                    className="w-full bg-[#161616] border border-white/10 p-2.5 rounded-xl text-xs font-medium text-white outline-none focus:border-blue-500/50 transition-all cursor-pointer"
+                  >
+                    <option value="Escudo">🛡️ Escudo</option>
+                    <option value="Curación">🩹 Auto-Curación</option>
+                    <option value="Buff/Debuff">❄️ Mitigar Daño</option>
+                  </select>
+                </div>
+              </div>
+
             </div>
 
             {/* URL Imagen */}
@@ -187,4 +328,4 @@ const EditarCarta = ({ onGuardar, loading = false, cartas }: EditarCartaProps) =
   );
 };
 
-export default EditarCarta;
+export default FormularioEditarCarta;

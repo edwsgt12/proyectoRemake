@@ -1,7 +1,9 @@
+import type { TipoCarta, GrupoCarta, TipoHabilidadIA } from './atributosCartas';
+
 export interface Habilidad {
     nombre: string;
     efecto: 'ataque_especial' | 'escudo' | 'curacion';
-    valor: number; // Porcentaje o daño fijo (ej: 30 para curar 30% de vida, o 5000 para daño extra)
+    valor: number; // Porcentaje o daño fijo
 }
 
 export interface Carta {
@@ -9,13 +11,18 @@ export interface Carta {
     name: string;
     ataque: number;
     defensa: number;
+    nivel: number;
     img: string;
     descripcion: string;
     vida: number;
-    tipo?: string;
-    habilidad?: Habilidad;          // 👈 Tu propiedad original intacta
-    habilidadOfensiva?: Habilidad; // 👈 Slot ofensivo añadido
-    habilidadDefensiva?: Habilidad; // 👈 Slot defensivo añadido
+    grupo: GrupoCarta;
+    tipo: TipoCarta;          
+    tipoUlti: TipoHabilidadIA;     
+    tipoDefensiva: TipoHabilidadIA;
+
+    habilidad?: Habilidad;          
+    habilidadOfensiva?: Habilidad;  
+    habilidadDefensiva?: Habilidad; 
     onClick?: () => void;
 }
 
@@ -28,10 +35,14 @@ export interface IApiCard {
     "lifePoints": number;
     "pictureUrl": string;
     "attributes": {
-        tipo?: string;
-        habilidad?: Habilidad;          // 👈 Tu propiedad original intacta
-        habilidadOfensiva?: Habilidad; // 👈 Añadido
-        habilidadDefensiva?: Habilidad; // 👈 Añadido
+        grupo?: GrupoCarta;
+        tipo: TipoCarta;
+        nivel: number;
+        tipoUlti: TipoHabilidadIA;
+        tipoDefensiva: TipoHabilidadIA;
+        habilidad?: Habilidad;          
+        habilidadOfensiva?: Habilidad; 
+        habilidadDefensiva?: Habilidad; 
     };
     "userSecret": string;
     "createdAt": string;
@@ -47,7 +58,11 @@ export const toApiCardMaper = (carta: Carta) => {
         lifePoints: Number(carta.vida),
         pictureUrl: carta.img || "https://nombre.jpn",
         attributes: {
+            grupo: carta.grupo,
             tipo: carta.tipo,
+            nivel: carta.nivel,
+            tipoUlti: carta.tipoUlti,
+            tipoDefensiva: carta.tipoDefensiva,
             habilidad: carta.habilidad, 
             habilidadOfensiva: carta.habilidadOfensiva,
             habilidadDefensiva: carta.habilidadDefensiva
@@ -56,20 +71,17 @@ export const toApiCardMaper = (carta: Carta) => {
 };
 
 export const toCardApiMaper = (apicard: IApiCard): Carta => {
-    // 1. Replicamos tu lógica original exacta para definir la habilidad base
     const habilidadPorDefecto: Habilidad = apicard.attack > apicard.defense 
         ? { nombre: "Impacto Crítico", efecto: "ataque_especial", valor: 1.5 }
         : { nombre: "Barrera Absoluta", efecto: "escudo", valor: 2 }; 
 
     const habBase = apicard.attributes?.habilidad || habilidadPorDefecto;
 
-    // 2. Fallbacks inteligentes para rellenar las dos habilidades si no vienen explícitas
     const ofenPorDefecto: Habilidad = { nombre: "Ráfaga Ígnea", efecto: "ataque_especial", valor: 1.5 };
     const defPorDefecto: Habilidad = apicard.defense >= apicard.attack / 2
         ? { nombre: "Muralla de Energía", efecto: "escudo", valor: 2 }
         : { nombre: "Inyección de Vida", efecto: "curacion", valor: 25 };
 
-    // 3. Distribución: si la base es ofensiva se asigna al slot de ataque, si no, al defensivo
     const ofensivaFinal = apicard.attributes?.habilidadOfensiva || (habBase.efecto === 'ataque_especial' ? habBase : ofenPorDefecto);
     const defensivaFinal = apicard.attributes?.habilidadDefensiva || (habBase.efecto !== 'ataque_especial' ? habBase : defPorDefecto);
 
@@ -81,8 +93,13 @@ export const toCardApiMaper = (apicard: IApiCard): Carta => {
         defensa: apicard.defense,
         vida: apicard.lifePoints,
         img: apicard.pictureUrl || "https://nombre.jpn",
-        tipo: apicard.attributes?.tipo,
-        habilidad: habBase, // 👈 Sigue existiendo sin problemas
+        nivel: apicard.attributes?.nivel || 1,
+        grupo: apicard.attributes?.grupo || 'Cónclave Arcano', 
+        tipo: apicard.attributes?.tipo || 'Hechicero',
+        tipoUlti: apicard.attributes?.tipoUlti || 'Daño',
+        tipoDefensiva: apicard.attributes?.tipoDefensiva || 'Escudo',
+
+        habilidad: habBase, 
         habilidadOfensiva: ofensivaFinal,
         habilidadDefensiva: defensivaFinal
     };
