@@ -1,26 +1,57 @@
 import { useState } from 'react';
-import { RiMagicLine, RiFlashlightLine, RiShieldLine, RiTeamLine } from "react-icons/ri";
+import { RiMagicLine, RiFlashlightLine, RiShieldLine, RiTeamLine, RiCloseLine } from "react-icons/ri";
+import { FaTimes } from "react-icons/fa";
+import { Link } from 'react-router';
 
 // Importaciones reales desde tus archivos de tipos
 import type { Carta } from "../assets/types/types";
 import { 
     MAPA_TIPO_A_GRUPO, 
     type TipoCarta, 
-    type TipoHabilidadIA 
-} from "../assets/types/atributosCartas"; // Asegúrate de apuntar a './tipos' o donde tengas MAPA_TIPO_A_GRUPO
+    type TipoHabilidadIA,
+    type GrupoCarta
+} from "../assets/types/atributosCartas";
 
-// 1. Extraemos las familias reales de tu mapa: Cónclave Arcano, Sindicato Cyberpunk, etc.
-const FAMILIAS_UNICAS = Array.from(new Set(Object.values(MAPA_TIPO_A_GRUPO)));
+interface UltiAtaque {
+    id: string;
+    nombre: string;
+    descripcion: string;
+    mecanica: string;
+}
 
-// 2. Mapeo inverso automático para agrupar los tipos por facción
+// === TU DICCIONARIO REAL DE ULTIS ===
+export const DICCIONARIO_ULTIS_POR_FAMILIA: Record<GrupoCarta, UltiAtaque[]> = {
+  "Cónclave Arcano": [
+    { id: "tormenta_mana", nombre: "Tormenta de Maná", descripcion: "Daño masivo del 300%, pero reduce tu defensa un 20% el próximo turno.", mecanica: "EXPLOSIVO_RIESGO" },
+    { id: "sentencia_nova", nombre: "Sentencia de Nova", descripcion: "Daño del 150% que se duplica si al rival le queda menos del 25% de vida.", mecanica: "EJECUCON" }
+  ],
+  "Sindicato Cyberpunk": [
+    { id: "pulso_emp", nombre: "Pulso Electromagnético", descripcion: "Daño del 200% que ignora por completo los escudos del oponente.", mecanica: "PERFORANTE" },
+    { id: "inyeccion_malware", nombre: "Inyección de Malware", descripcion: "Daño inicial del 120% que se duplica en cada turno del rival.", mecanica: "DOT_CRECIENTE" }
+  ],
+  "Orden del Filo": [
+    { id: "corte_rompearmaz", nombre: "Corte Rompe-Armaduras", descripcion: "Daño del 210% y reduce la defensa del rival un 40% permanente.", mecanica: "DEBUFF_DEFENSA" },
+    { id: "danza_hojas", nombre: "Danza de las Hojas", descripcion: "Lanza 3 golpes rápidos del 80% con probabilidad crítica individual.", mecanica: "MULTIGOLPE" }
+  ],
+  "Sombras del Yermo": [
+    { id: "emboscada_toxica", nombre: "Emboscada Tóxica", descripcion: "Daño del 160% y aplica veneno que quita 8% de vida actual por 3 turnos.", mecanica: "VENENO" },
+    { id: "disparo_conmocion", nombre: "Disparo de Conmoción", descripcion: "Daño del 180% con 30% de probabilidad de aturdir al oponente.", mecanica: "CONTROL_ATURDIR" }
+  ],
+  "Fuerzas Primordiales": [
+    { id: "furia_tierra", nombre: "Furia de la Tierra", descripcion: "Daño equivalente al 100% de tu ataque más el 10% de tu Vida Máxima.", mecanica: "ESCALADO_VIDA" },
+    { id: "golpe_espinas", nombre: "Golpe de Espinas", descripcion: "Daño del 185% que aumenta un 40% extra si tienes un escudo activo.", mecanica: "SI_TIENE_ESCUDO" }
+  ]
+};
+
+const FAMILIAS_UNICAS = Array.from(new Set(Object.values(MAPA_TIPO_A_GRUPO))) as GrupoCarta[];
+
 const MAPA_GRUPO_A_TIPOS = Object.entries(MAPA_TIPO_A_GRUPO).reduce((acc, [tipo, grupo]) => {
   if (!acc[grupo]) acc[grupo] = [];
   acc[grupo].push(tipo as TipoCarta);
   return acc;
 }, {} as Record<string, TipoCarta[]>);
 
-// 3. CONFIGURACIÓN DE LÍMITES CON TUS FAMILIAS REALES
-const LIMITES_POR_FAMILIA: Record<string, { maxAtaque: number; maxDefensa: number; maxVida: number }> = {
+const LIMITES_POR_FAMILIA: Record<GrupoCarta, { maxAtaque: number; maxDefensa: number; maxVida: number }> = {
     "Cónclave Arcano":      { maxAtaque: 4000, maxDefensa: 1500, maxVida: 18000 },
     "Sindicato Cyberpunk":  { maxAtaque: 3500, maxDefensa: 2500, maxVida: 22000 },
     "Orden del Filo":       { maxAtaque: 3200, maxDefensa: 3500, maxVida: 28000 },
@@ -37,20 +68,29 @@ export const GenerarCartaIA = () => {
   const [cartaGenerada, setCartaGenerada] = useState<Carta | null>(null);
 
   // === ESTADOS DE LOS SELECTORES ===
-  const [familiaSeleccionada, setFamiliaSeleccionada] = useState<string>(FAMILIAS_UNICAS[0]);
+  const [familiaSeleccionada, setFamiliaSeleccionada] = useState<GrupoCarta>(FAMILIAS_UNICAS[0]);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoCarta>(
     (MAPA_GRUPO_A_TIPOS[FAMILIAS_UNICAS[0]]?.[0]) || "" as TipoCarta
   );
   
   const [tipoUlti, setTipoUlti] = useState<TipoHabilidadIA>('Daño');
   const [tipoDefensiva, setTipoDefensiva] = useState<TipoHabilidadIA>('Escudo');
+  const [indiceUlti, setIndiceUlti] = useState<number>(0);
 
-  // Obtener límites basados en tu facción real seleccionada
   const limitesActuales = LIMITES_POR_FAMILIA[familiaSeleccionada] || LIMITE_DEFECTO;
+  const ultisDisponibles = DICCIONARIO_ULTIS_POR_FAMILIA[familiaSeleccionada] || [];
+
+  // === FUNCIÓN PARA REGRESAR AL HOME ===
+  const volverAlHome = () => {
+    // Integra aquí tu método de navegación (p.ej. setVista('home') o navigate('/'))
+    console.log("Cerrando vista de IA y regresando al home principal...");
+  };
 
   const handleFamiliaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nuevaFamilia = e.target.value;
+    const nuevaFamilia = e.target.value as GrupoCarta;
     setFamiliaSeleccionada(nuevaFamilia);
+    setIndiceUlti(0);
+
     const tiposFiltrados = MAPA_GRUPO_A_TIPOS[nuevaFamilia] || [];
     if (tiposFiltrados.length > 0) {
       setTipoSeleccionado(tiposFiltrados[0]);
@@ -67,9 +107,11 @@ export const GenerarCartaIA = () => {
     setError(null);
     setCartaGenerada(null);
 
+    const ultiSeleccionadaPorUsuario = ultisDisponibles[indiceUlti] || ultisDisponibles[0];
+
     const contextoSistema = `
       Eres un asistente experto diseñando cartas equilibradas para un videojuego RPG. 
-      Debes generar estadísticas de combate, una habilidad definitiva y una habilidad defensiva basada en el prompt del usuario respetando ESTRICTAMENTE los límites de balanceo por facción.
+      Debes generar estadísticas de combate, integrar la habilidad definitiva asignada manualmente por el formulario y una habilidad defensiva basada en el prompt del usuario respetando ESTRICTAMENTE los límites de balanceo por facción.
       
       PARÁMETROS ASIGNADOS POR EL FORMULARIO:
       - FAMILIA / FACCIÓN: "${familiaSeleccionada}"
@@ -82,6 +124,11 @@ export const GenerarCartaIA = () => {
       - "defensa" DEBE ser un entero entre 100 y ${limitesActuales.maxDefensa}.
       - "vida" DEBE ser un entero entre 1000 y ${limitesActuales.maxVida}.
       
+      REGLA CRÍTICA PARA "ultiSeleccionada":
+      El usuario ya ha elegido manualmente la habilidad definitiva para esta carta en la interfaz. 
+      DEBES incrustar EXACTAMENTE este objeto en la propiedad "ultiSeleccionada" del JSON de respuesta sin modificar sus valores:
+      ${JSON.stringify(ultiSeleccionadaPorUsuario)}
+      
       Responde EXCLUSIVAMENTE con un JSON plano que tenga esta estructura exacta:
       {
         "name": "Nombre original del personaje",
@@ -93,6 +140,7 @@ export const GenerarCartaIA = () => {
         "vida": 15000,
         "tipoUlti": "${tipoUlti}",
         "tipoDefensiva": "${tipoDefensiva}",
+        "ultiSeleccionada": ${JSON.stringify(ultiSeleccionadaPorUsuario)},
         "img": ""
       }
     `;
@@ -128,10 +176,18 @@ export const GenerarCartaIA = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-6">
-      <div className="w-full max-w-xl bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700">
-        <h1 className="text-3xl font-black mb-2 text-yellow-500 text-center uppercase tracking-tighter">Generar Carta con IA</h1>
+      <div className="w-full max-w-xl bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700 relative">
         
-        {/* Marcadores de límites dinámicos en la interfaz */}
+        {/* === BOTÓN DE CIERRE (X) EN LA PARTE SUPERIOR DERECHA === */}
+        <Link to={"/"}>
+            <FaTimes className="text-yellow-400 shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden" />
+        </Link>
+
+        <h1 className="text-3xl font-black mb-2 text-yellow-500 text-center uppercase tracking-tighter pr-6">
+          Generar Carta con IA
+        </h1>
+        
+        {/* Marcadores de límites dinámicos */}
         <p className="text-center text-[10px] text-slate-400 mb-6 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50 uppercase tracking-wider">
           Topes {familiaSeleccionada}: <span className="text-red-400 font-bold">⚔️ {limitesActuales.maxAtaque}</span> | <span className="text-blue-400 font-bold">🛡️ {limitesActuales.maxDefensa}</span> | <span className="text-green-400 font-bold">❤️ {limitesActuales.maxVida}</span>
         </p>
@@ -197,6 +253,31 @@ export const GenerarCartaIA = () => {
               </select>
             </div>
           </div>
+
+          {/* Selector manual de Ultis */}
+          <div className="flex flex-col gap-1.5 pt-3 border-t border-slate-700/40">
+            <label className="block text-[10px] font-black uppercase text-purple-400 flex items-center gap-1">
+              💥 Asignar Habilidad Suprema (Manual)
+            </label>
+            <select
+              value={indiceUlti}
+              onChange={(e) => setIndiceUlti(Number(e.target.value))}
+              disabled={loading}
+              className="w-full p-2.5 bg-slate-900 border border-purple-500/30 rounded-lg text-white text-xs font-medium outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+            >
+              {ultisDisponibles.map((ulti, index) => (
+                <option key={ulti.id} value={index}>
+                  🔥 {ulti.nombre} — [{ulti.mecanica}]
+                </option>
+              ))}
+            </select>
+            {/* Texto descriptivo de la Ulti */}
+            {ultisDisponibles[indiceUlti] && (
+              <p className="text-[11px] text-purple-300/80 italic mt-1 px-1">
+                Efecto: {ultisDisponibles[indiceUlti].descripcion}
+              </p>
+            )}
+          </div>
         </div>
 
         <label className="block mb-2 text-xs font-black uppercase text-slate-300">
@@ -245,6 +326,21 @@ export const GenerarCartaIA = () => {
             </div>
 
             <p className="text-xs text-slate-400 italic">"{cartaGenerada.descripcion}"</p>
+
+            {/* Muestra la habilidad definitiva devuelta */}
+            {cartaGenerada.ultiSeleccionada && (
+              <div className="p-3 bg-purple-950/20 border border-purple-500/20 rounded-xl space-y-1">
+                <p className="text-[10px] font-black text-purple-400 uppercase tracking-wider">
+                  💥 Suprema Equipada: {cartaGenerada.ultiSeleccionada.nombre}
+                </p>
+                <p className="text-xs text-purple-200/80 italic">
+                  {cartaGenerada.ultiSeleccionada.descripcion}
+                </p>
+                <span className="inline-block text-[9px] font-mono bg-purple-500/10 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/20 mt-1">
+                  Mecánica: {cartaGenerada.ultiSeleccionada.mecanica}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-2 text-xs bg-slate-800/40 p-3 rounded-xl border border-slate-700/30 text-center font-semibold">
               <div>⚔️ ATK: <span className="font-bold text-red-400">{cartaGenerada.ataque}</span></div>

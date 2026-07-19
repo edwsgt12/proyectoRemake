@@ -26,21 +26,48 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
 
                 <div className="flex flex-col md:flex-row gap-8">
                     
-                    <div className="flex-shrink-0 relative">
-                        <img
-                            src={carta.img}
-                            alt={carta.name}
-                            className="w-64 h-80 object-cover rounded-xl border-2 border-gray-700 shadow-2xl"
-                        />
-                        <div className="absolute -bottom-2 left-4 right-4 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
-                            <div 
-                                className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all duration-500" 
-                                style={{ width: `${Math.min(100, ((carta.vida || 100) / 100) * 100)}%` }}
-                            ></div>
+                    {/* COLUMNA IZQUIERDA: IMAGEN + TIPO + ULTI ESPECIAL */}
+                    <div className="flex-shrink-0 flex flex-col gap-3 w-full md:w-64">
+                        <div className="relative">
+                            <img
+                                src={carta.img}
+                                alt={carta.name}
+                                className="w-full h-80 object-cover rounded-xl border-2 border-gray-700 shadow-2xl"
+                            />
+                            <div className="absolute -bottom-2 left-4 right-4 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                                <div 
+                                    className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all duration-500" 
+                                    style={{ width: `${Math.min(100, ((carta.vida || 100) / 100) * 100)}%` }}
+                                ></div>
+                            </div>
                         </div>
+
+                        {/* TIPO DE CARTA */}
+                        <div className="bg-white/5 py-1.5 px-3 rounded-lg border border-white/5 text-center flex items-center justify-center gap-1.5">
+                            <RiMagicLine className="text-yellow-500 text-xs" />
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tipo:</span>
+                            <span className="text-[11px] font-black text-white uppercase italic truncate">{carta.tipo || 'Hechicero'}</span>
+                        </div>
+
+                        {/* HABILIDAD SUPREMA/ULTI ESPECIAL */}
+                        {carta.ultiSeleccionada && (
+                            <div className="p-3 bg-purple-950/20 border border-purple-500/20 rounded-xl space-y-1">
+                                <p className="text-[9px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                                    <RiFlashlightLine /> Suprema: {carta.ultiSeleccionada.nombre}
+                                </p>
+                                <p className="text-[11px] text-purple-200/80 italic leading-relaxed">
+                                    {carta.ultiSeleccionada.descripcion}
+                                </p>
+                                {carta.ultiSeleccionada.mecanica && (
+                                    <span className="inline-block text-[8px] font-mono bg-purple-500/10 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/20 mt-1 uppercase">
+                                        {carta.ultiSeleccionada.mecanica}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Sección de Información de la carta */}
+                    {/* COLUMNA DERECHA: INFORMACIÓN Y STATS */}
                     <div className="flex-1 flex flex-col relative">
                         
                         {/* Cabecera */}
@@ -79,26 +106,12 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
                             </div>
                         </div>
 
-                        {/* === NUEVA SECCIÓN: TIPOS Y METAS DE HABILIDAD === */}
-                        <div className="grid grid-cols-3 gap-2 mb-4 bg-white/5 p-3 rounded-xl border border-white/5 text-center">
-                            <div>
-                                <div className="text-[8px] text-yellow-500/80 font-bold uppercase tracking-wider flex items-center justify-center gap-1 mb-1">
-                                    <RiMagicLine /> Tipo
-                                </div>
-                                <div className="text-[11px] font-black truncate text-white uppercase italic">{carta.tipo || 'Hechicero'}</div>
-                            </div>
-                            <div>
-                                <div className="text-[8px] text-purple-400 font-bold uppercase tracking-wider flex items-center justify-center gap-1 mb-1">
-                                    <RiFlashlightLine /> Meta Ulti
-                                </div>
-                                <div className="text-[11px] font-black truncate text-purple-300 uppercase italic">{carta.tipoUlti || 'Daño'}</div>
-                            </div>
-                            <div>
-                                <div className="text-[8px] text-blue-400 font-bold uppercase tracking-wider flex items-center justify-center gap-1 mb-1">
-                                    <RiShieldLine /> Meta Def.
-                                </div>
-                                <div className="text-[11px] font-black truncate text-blue-300 uppercase italic">{carta.tipoDefensiva || 'Escudo'}</div>
-                            </div>
+                        {/* Meta Defensiva (La dejé aquí en la derecha por si la necesitas, de forma limpia) */}
+                        <div className="mb-4 bg-white/5 px-3 py-2 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                            <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <RiShieldLine /> Meta Defensiva
+                            </span>
+                            <span className="font-black text-blue-300 uppercase italic text-[11px]">{carta.tipoDefensiva || 'Escudo'}</span>
                         </div>
 
                         {/* Descripción */}

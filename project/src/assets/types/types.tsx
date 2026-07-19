@@ -1,10 +1,11 @@
-import type { TipoCarta, GrupoCarta, TipoHabilidadIA } from './atributosCartas';
+import type { TipoCarta, GrupoCarta, TipoHabilidadIA, UltiAtaque } from './atributosCartas';
 
 export interface Habilidad {
     nombre: string;
     efecto: 'ataque_especial' | 'escudo' | 'curacion';
     valor: number; // Porcentaje o daño fijo
 }
+
 
 export interface Carta {
     id: number;
@@ -19,6 +20,9 @@ export interface Carta {
     tipo: TipoCarta;          
     tipoUlti: TipoHabilidadIA;     
     tipoDefensiva: TipoHabilidadIA;
+    
+    // Almacena la estructura teórica/identificador de la Ulti única elegida
+    ultiSeleccionada?: UltiAtaque;
 
     habilidad?: Habilidad;          
     habilidadOfensiva?: Habilidad;  
@@ -40,6 +44,7 @@ export interface IApiCard {
         nivel: number;
         tipoUlti: TipoHabilidadIA;
         tipoDefensiva: TipoHabilidadIA;
+        ultiSeleccionada?: UltiAtaque; // Persistencia de la ulti en base de datos
         habilidad?: Habilidad;          
         habilidadOfensiva?: Habilidad; 
         habilidadDefensiva?: Habilidad; 
@@ -63,6 +68,7 @@ export const toApiCardMaper = (carta: Carta) => {
             nivel: carta.nivel,
             tipoUlti: carta.tipoUlti,
             tipoDefensiva: carta.tipoDefensiva,
+            ultiSeleccionada: carta.ultiSeleccionada, // Mapea la ulti hacia el payload
             habilidad: carta.habilidad, 
             habilidadOfensiva: carta.habilidadOfensiva,
             habilidadDefensiva: carta.habilidadDefensiva
@@ -98,6 +104,9 @@ export const toCardApiMaper = (apicard: IApiCard): Carta => {
         tipo: apicard.attributes?.tipo || 'Hechicero',
         tipoUlti: apicard.attributes?.tipoUlti || 'Daño',
         tipoDefensiva: apicard.attributes?.tipoDefensiva || 'Escudo',
+        
+        // Recupera la ulti de los atributos guardados en la API
+        ultiSeleccionada: apicard.attributes?.ultiSeleccionada,
 
         habilidad: habBase, 
         habilidadOfensiva: ofensivaFinal,

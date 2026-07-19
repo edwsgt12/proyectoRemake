@@ -9,7 +9,6 @@ function Cartainicial({
   onDelete: (id: number) => void,
   onClick: () => void
 }) {
-  // 👇 Aquí incluimos 'tipo' en la desestructuración para que se muestre correctamente
   const { 
     id,
     name,
@@ -17,13 +16,42 @@ function Cartainicial({
     defensa,
     img,
     vida,
-    tipo 
+    tipo,
+    ultiSeleccionada,
+    nivel = 1 
   } = carta;
+
+  // Definición de paletas exactas en formato RGB (r, g, b)
+  const PALETA_RGB: Record<number, { rgb: string; texto: string }> = {
+    1: { rgb: "34, 197, 94", texto: "text-green-400" },      // Nivel 1: Verde
+    2: { rgb: "59, 130, 246", texto: "text-blue-400" },     // Nivel 2: Azul
+    3: { rgb: "168, 85, 247", texto: "text-purple-400" },   // Nivel 3: Morado
+    4: { rgb: "148, 163, 184", texto: "text-slate-300" },   // Nivel 4: Plateado
+    5: { rgb: "245, 158, 11", texto: "text-amber-400" },     // Nivel 5: Dorado
+  };
+
+  // Caída limpia si el nivel supera el rango esperado
+  const configActual = PALETA_RGB[nivel] || PALETA_RGB[5];
+  const colorRGB = configActual.rgb;
 
   return (
     <div 
-      className="bg-gradient-to-br from-gray-900 to-black border-2 border-yellow-500 rounded-2xl p-4 w-64 text-white shadow-2xl hover:scale-105 transition-transform cursor-pointer relative overflow-hidden"
+      className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-4 w-64 text-white transition-all duration-300 cursor-pointer relative overflow-hidden group style-glow"
       onClick={onClick}
+      // Pasamos el color RGB dinámico como variable CSS personalizada
+      style={{
+        border: `2px solid rgb(${colorRGB})`,
+        boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 0px rgba(${colorRGB}, 0)`
+      }}
+      // Modificamos el resplandor de la caja usando clases personalizadas o inyectando el hover en línea
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = `0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px 2px rgba(${colorRGB}, 0.35)`;
+        e.currentTarget.style.transform = 'scale(1.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = `0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 0px rgba(${colorRGB}, 0)`;
+        e.currentTarget.style.transform = 'scale(1)';
+      }}
     >
       {/* Botón de eliminar */}
       <button
@@ -49,10 +77,17 @@ function Cartainicial({
         </svg>
       </button>
 
-      {/* ID de la carta */}
+      {/* Indicador de Nivel */}
       <div className="flex justify-between mt-4">
-        <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold rounded-full w-8 h-8 flex items-center justify-center">
-          #{id}
+        <div 
+          className={`absolute top-3 left-3 ${configActual.texto} font-black rounded-full w-8 h-8 flex items-center justify-center text-[11px] shadow-md`}
+          style={{ 
+            backgroundColor: `rgba(${colorRGB}, 0.1)`, 
+            border: `1px solid rgba(${colorRGB}, 0.3)` 
+          }}
+          title={`ID de la carta: #${id}`}
+        >
+          LV{nivel}
         </div>
       </div>
 
@@ -66,15 +101,33 @@ function Cartainicial({
       </div>
 
       {/* Nombre del Personaje */}
-      <h2 className="text-2xl font-bold text-center mb-1 text-yellow-300 tracking-tighter uppercase italic">
+      <h2 className={`text-2xl font-bold text-center mb-1 ${configActual.texto} tracking-tighter uppercase italic`}>
         {name}
       </h2>
 
-      {/* === BADGE DEL TIPO DE CARTA (RENDERIZADO Y MOSTRADO) === */}
-      <div className="flex justify-center mb-3">
-        <span className="text-[10px] font-mono font-bold uppercase bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-3 py-0.5 rounded-md tracking-wider">
+      {/* Badges de Atributos */}
+      <div className="flex flex-col items-center gap-1.5 mb-3">
+        {/* Badge del Tipo de Carta */}
+        <span 
+          className={`text-[10px] font-mono font-bold uppercase px-3 py-0.5 rounded-md tracking-wider ${configActual.texto}`}
+          style={{ 
+            backgroundColor: `rgba(${colorRGB}, 0.1)`, 
+            border: `1px solid rgba(${colorRGB}, 0.2)` 
+          }}
+        >
           {tipo || 'Hechicero'}
         </span>
+
+        {/* Badge Dinámico de la Habilidad Suprema (Ulti) */}
+        {ultiSeleccionada ? (
+          <span className="text-[9px] font-mono uppercase bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2.5 py-0.5 rounded-md tracking-tight font-semibold">
+            💥 {ultiSeleccionada.nombre}
+          </span>
+        ) : (
+          <span className="text-[9px] font-mono uppercase bg-white/5 border border-white/10 text-gray-400 px-2.5 py-0.5 rounded-md tracking-tight">
+            💥 Sin Ulti
+          </span>
+        )}
       </div>
 
       {/* Estadísticas de Combate */}
@@ -93,11 +146,16 @@ function Cartainicial({
         </div>
       </div>
 
-      {/* Efecto de brillo al hacer hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700" />
+      {/* Efecto de brillo al hacer hover general */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
       
-      {/* Efecto de brillo sutil en la esquina de vida */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-500/10 to-transparent rounded-full blur-xl pointer-events-none" />
+      {/* Brillo sutil de fondo en base a la opacidad del RGB */}
+      <div 
+        className="absolute top-0 right-0 w-24 h-24 rounded-full blur-xl pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-70" 
+        style={{
+          background: `linear-gradient(135deg, rgba(${colorRGB}, 0.25), transparent)`
+        }}
+      />
     </div>
   );
 }

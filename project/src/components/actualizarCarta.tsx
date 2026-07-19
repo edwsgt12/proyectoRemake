@@ -3,7 +3,7 @@ import {
   RiImageAddLine, RiShieldLine, RiSwordLine, RiHistoryLine, 
   RiSaveLine, RiLoader4Line, RiCheckLine, RiErrorWarningLine,
   RiArrowLeftLine, RiHeartFill, RiMagicLine, RiFlashlightLine,
-  RiTeamLine
+  RiTeamLine, RiSwordFill
 } from "react-icons/ri";
 import { useNavigate, useParams } from 'react-router';
 
@@ -11,7 +11,9 @@ import { useNavigate, useParams } from 'react-router';
 import type { Carta, EditarCartaProps } from '../assets/types/types';
 import { 
   MAPA_TIPO_A_GRUPO, 
-  type TipoCarta 
+  DICCIONARIO_ULTIS_POR_FAMILIA,
+  type TipoCarta,
+  type GrupoCarta
 } from '../assets/types/atributosCartas';
 
 // 1. Extraemos las familias únicas disponibles
@@ -42,7 +44,8 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
   useEffect(() => {
     if (cartaInicial) {
       setFormData(cartaInicial);
-      setFamiliaSeleccionada(cartaInicial.grupo || MAPA_TIPO_A_GRUPO[cartaInicial.tipo] || FAMILIAS_UNICAS[0]);
+      const grupoActual = cartaInicial.grupo || MAPA_TIPO_A_GRUPO[cartaInicial.tipo] || FAMILIAS_UNICAS[0];
+      setFamiliaSeleccionada(grupoActual);
     }
   }, [cartaInicial]);
 
@@ -57,19 +60,35 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
   }
 
   const handleFamiliaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nuevaFamilia = e.target.value;
+    const nuevaFamilia = e.target.value as GrupoCarta;
     setFamiliaSeleccionada(nuevaFamilia);
 
-    // Al cambiar la familia, seleccionamos automáticamente el primer tipo disponible de esa lista filtrada
+    // Al cambiar la familia, obtenemos sus tipos y sus 2 ultis exclusivas
     const tiposFiltrados = MAPA_GRUPO_A_TIPOS[nuevaFamilia] || [];
-    if (tiposFiltrados.length > 0) {
+    const ultisFiltradas = DICCIONARIO_ULTIS_POR_FAMILIA[nuevaFamilia] || [];
+    
+    setFormData(prev => prev ? ({
+      ...prev,
+      grupo: nuevaFamilia, 
+      tipo: tiposFiltrados[0] as any,
+      // Asigna por defecto la primera de las 2 ultis correspondientes a la nueva familia
+      ultiSeleccionada: ultisFiltradas[0] || undefined 
+    }) : null);
+    
+    if (error) setError(null);
+  };
+
+  const handleUltiChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const ultiId = e.target.value;
+    const ultisDeFamilia = DICCIONARIO_ULTIS_POR_FAMILIA[familiaSeleccionada as GrupoCarta] || [];
+    const ultiEncontrada = ultisDeFamilia.find(u => u.id === ultiId);
+
+    if (ultiEncontrada) {
       setFormData(prev => prev ? ({
         ...prev,
-        grupo: nuevaFamilia as any, // Asignación segura para evitar fricciones de tipo estricto
-        tipo: tiposFiltrados[0] as any
+        ultiSeleccionada: ultiEncontrada
       }) : null);
     }
-    if (error) setError(null);
   };
 
   // Soportamos selectores en el manejador de cambios general
@@ -98,10 +117,14 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
     // Aseguramos que el grupo guardado sea el correcto según el tipo final asignado
     const grupoAsignado = MAPA_TIPO_A_GRUPO[formData.tipo] || familiaSeleccionada;
 
+    // Si por alguna razón no tiene ulti asignada todavía, le forzamos la primera por defecto del grupo
+    const ultiFinal = formData.ultiSeleccionada || DICCIONARIO_ULTIS_POR_FAMILIA[grupoAsignado as GrupoCarta]?.[0];
+
     const cartaActualizada: Carta = {
       ...formData,
-      grupo: grupoAsignado,
-      nivel: formData.nivel || 1
+      grupo: grupoAsignado as GrupoCarta,
+      nivel: formData.nivel || 1,
+      ultiSeleccionada: ultiFinal
     };
 
     const result = await onGuardar(cartaActualizada);
@@ -113,8 +136,9 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
     }
   };
 
-  // Obtenemos dinámicamente la lista de tipos correspondientes a la familia activa
+  // Listas auxiliares filtradas dinámicamente según la familia seleccionada
   const tiposDisponiblesFiltrados = MAPA_GRUPO_A_TIPOS[familiaSeleccionada] || [];
+  const ultisDisponiblesFiltradas = DICCIONARIO_ULTIS_POR_FAMILIA[familiaSeleccionada as GrupoCarta] || [];
 
   return (
     <div className="min-h-screen w-full bg-[#050505] text-gray-200 p-4 md:p-10 flex items-center justify-center font-sans">
@@ -141,6 +165,11 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
               <span className="text-[10px] font-mono uppercase bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-full">
                 {formData.tipo || 'Hechicero'}
               </span>
+              {formData.ultiSeleccionada && (
+                <span className="text-[9px] font-mono uppercase bg-purple-500/10 border border-purple-500/20 text-purple-400 px-3 py-0.5 rounded-full mt-1">
+                  ⚔️ {formData.ultiSeleccionada.nombre}
+                </span>
+              )}
               <span className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
                 Nivel {formData.nivel || 1}
               </span>
@@ -196,7 +225,7 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
             {/* Selectores de Atributos del Sistema (Facciones, Clases y Metas) */}
             <div className="space-y-4 bg-white/2 p-4 rounded-2xl border border-white/5">
               
-              {/* Fila superior: Selectores de Familia y Tipo filtrado */}
+              {/* Fila 1: Familia y Tipo filtrado */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-amber-500 uppercase flex items-center gap-1 mb-1">
@@ -234,11 +263,29 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
                 </div>
               </div>
 
-              {/* Fila inferior: Metas de Combate */}
+              {/* NUEVA FILA: Selector dinámico de Ultis (solo muestra las 2 de la familia) */}
+              <div className="space-y-1 pt-2 border-t border-white/5">
+                <label className="text-[9px] font-bold text-purple-400 uppercase flex items-center gap-1 mb-1">
+                  <RiSwordFill /> Habilidad Suprema (Ulti Ofensiva Exclusiva)
+                </label>
+                <select
+                  value={formData.ultiSeleccionada?.id || ""}
+                  onChange={handleUltiChange}
+                  className="w-full bg-[#161616] border border-white/10 p-2.5 rounded-xl text-xs font-medium text-white outline-none focus:border-purple-500/50 transition-all cursor-pointer"
+                >
+                  {ultisDisponiblesFiltradas.map((ulti) => (
+                    <option key={ulti.id} value={ulti.id}>
+                      💥 {ulti.nombre} — ({ulti.descripcion})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Fila 3: Metas de Inteligencia de Combate */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/5">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-purple-400 uppercase flex items-center gap-1 mb-1">
-                    <RiFlashlightLine /> Meta Ulti
+                    <RiFlashlightLine /> Meta IA Ulti
                   </label>
                   <select
                     name="tipoUlti"
@@ -255,7 +302,7 @@ export const FormularioEditarCarta = ({ onGuardar, loading = false, cartas }: Ed
 
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-blue-400 uppercase flex items-center gap-1 mb-1">
-                    <RiShieldLine /> Meta Defensiva
+                    <RiShieldLine /> Meta IA Defensiva
                   </label>
                   <select
                     name="tipoDefensiva"

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import type { Carta } from '../assets/types/types';
-import { RiSwordLine, RiShieldFlashLine, RiHeartPulseLine, RiCompassDiscoverLine } from "react-icons/ri";
+import { RiSwordLine, RiShieldFlashLine, RiHeartPulseLine, RiCompassDiscoverLine, RiFlashlightLine } from "react-icons/ri";
+import { aplicarEfectoUlti } from '../components/batallaEfectos';
 
 interface CampoBatallaProps {
   cartas: Carta[];
@@ -29,8 +30,10 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
   // Cooldowns de habilidades
   const [cdOfensivaJ1, setCdOfensivaJ1] = useState(0);
   const [cdDefensivaJ1, setCdDefensivaJ1] = useState(0);
+  const [cdSupremaJ1, setCdSupremaJ1] = useState(0); 
   const [cdOfensivaJ2, setCdOfensivaJ2] = useState(0);
   const [cdDefensivaJ2, setCdDefensivaJ2] = useState(0);
+  const [cdSupremaJ2, setCdSupremaJ2] = useState(0); 
 
   const [logs, setLogs] = useState<string[]>([]);
   const [ganador, setGanador] = useState<Carta | null>(null);
@@ -42,12 +45,17 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
   const [evasionActivaJ2, setEvasionActivaJ2] = useState(false);
 
   const logEndRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
   // --- SISTEMA DE INICIATIVA ---
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const dadoJ1 = Math.floor(Math.random() * 20) + 1;
     const dadoJ2 = Math.floor(Math.random() * 20) + 1;
 
@@ -71,11 +79,13 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
     if (siguienteTurno === 1) {
       if (cdOfensivaJ1 > 0) setCdOfensivaJ1((prev) => prev - 1);
       if (cdDefensivaJ1 > 0) setCdDefensivaJ1((prev) => prev - 1);
+      if (cdSupremaJ1 > 0) setCdSupremaJ1((prev) => prev - 1); 
       setEscudoActivoJ1(false);
       setEvasionActivaJ1(false);
     } else {
       if (cdOfensivaJ2 > 0) setCdOfensivaJ2((prev) => prev - 1);
       if (cdDefensivaJ2 > 0) setCdDefensivaJ2((prev) => prev - 1);
+      if (cdSupremaJ2 > 0) setCdSupremaJ2((prev) => prev - 1); 
       setEscudoActivoJ2(false);
       setEvasionActivaJ2(false);
     }
@@ -90,7 +100,6 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
     const defensor = turnoActivo === 1 ? carta2 : carta1;
     const esEvasionActiva = turnoActivo === 1 ? evasionActivaJ2 : evasionActivaJ1;
 
-    // Verificar Evasión (Meta Defensiva)
     if (esEvasionActiva && Math.random() < 0.5) {
       setLogs((prev) => [...prev, `💨 ¡${defensor.name} esquivó completamente el ataque de ${atacante.name}!`]);
       cambiarTurno(turnoActivo === 1 ? 2 : 1);
@@ -100,7 +109,6 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
     const escudoDefensor = turnoActivo === 1 ? escudoActivoJ2 : escudoActivoJ1;
     const defensaDefensor = escudoDefensor ? defensor.defensa * 2 : defensor.defensa;
 
-    // Modificador de Tipo de Carta (Ej: Hechiceros ganan 15% bonus de ataque base)
     const multiplicadorTipo = atacante.tipo?.toLowerCase() === 'hechicero' ? 1.15 : 1.0;
     let danoBase = (atacante.ataque * multiplicadorTipo) / (1 + (defensaDefensor / 3000));
     if (danoBase <= 0) danoBase = 300;
@@ -138,69 +146,73 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
     }
   };
 
-  // --- LOGICA DE METAS Y PROPIEDADES ---
-  const usarHabilidadEspecial = (tipoSlot: 'ofensiva' | 'defensiva') => {
+  // --- LÓGICA DE PROCESAMIENTO DE ACCIONES ---
+  const usarHabilidadEspecial = (tipoSlot: 'ofensiva' | 'defensiva' | 'suprema') => {
     if (ganador || turnoActivo === null) return;
 
     const atacante = turnoActivo === 1 ? carta1 : carta2;
     
-    if (tipoSlot === 'ofensiva') {
-      const metaUlti = atacante.tipoUlti?.toLowerCase() || 'daño';
-      
-      if (metaUlti === 'curacion') {
-        const saludRecuperada = Math.floor(atacante.vida * 0.35); // Recupera 35% del total
-        if (turnoActivo === 1) {
-          setVidaJ1((v) => Math.min(carta1.vida, v + saludRecuperada));
-        } else {
-          setVidaJ2((v) => Math.min(carta2.vida, v + saludRecuperada));
-        }
-        setLogs((prev) => [...prev, `✨ ¡${atacante.name} activa Ulti de Regeneración y recupera ${saludRecuperada.toLocaleString()} HP!`]);
-      } else {
-        // Meta de Daño Estándar o Especial
-        const danoEspecial = Math.floor(atacante.ataque * 1.8);
-        setLogs((prev) => [...prev, `🔥 ¡${atacante.name} desata su ULTI de Destrucción total infligiendo ${danoEspecial.toLocaleString()}!`]);
+    if (tipoSlot === 'suprema') {
+      const nombreSuprema = atacante.ultiSeleccionada?.nombre || 'Habilidad Suprema de Familia';
+      const tipoUlti = (atacante.ultiSeleccionada as any)?.tipo || 'daño';      
+      const juegoTerminado = aplicarEfectoUlti({
+          tipoUlti,
+          nombreUlti: nombreSuprema,
+          atacante,
+          defensor: turnoActivo === 1 ? carta2 : carta1,
+          vidaAtacante: turnoActivo === 1 ? vidaJ1 : vidaJ2,
+          vidaDefensor: turnoActivo === 1 ? vidaJ2 : vidaJ1,
+          setVidaAtacante: turnoActivo === 1 ? setVidaJ1 : setVidaJ2,
+          setVidaDefensor: turnoActivo === 1 ? setVidaJ2 : setVidaJ1,
+          setLogs,
+          setGanador
+      });
 
-        if (turnoActivo === 1) {
-          const nuevaVida = Math.max(0, vidaJ2 - danoEspecial);
-          setVidaJ2(nuevaVida);
-          if (nuevaVida <= 0) {
-            setGanador(carta1);
-            setLogs((prev) => [...prev, `🏆 ¡${carta1.name.toUpperCase()} GANA LA PARTIDA!`]);
-            return;
-          }
-        } else {
-          const nuevaVida = Math.max(0, vidaJ1 - danoEspecial);
-          setVidaJ1(nuevaVida);
-          if (nuevaVida <= 0) {
-            setGanador(carta2);
-            setLogs((prev) => [...prev, `🏆 ¡${carta2.name.toUpperCase()} GANA LA PARTIDA!`]);
-            return;
-          }
-        }
-      }
+      if (juegoTerminado) return;
+
+    } else if (tipoSlot === 'ofensiva') {
+      const tipoUlti = atacante.tipoUlti || 'daño';
+      const nombreUlti = atacante.habilidadOfensiva?.nombre || 'Ataque Supremo';
+      
+      const juegoTerminado = aplicarEfectoUlti({
+          tipoUlti,
+          nombreUlti,
+          atacante,
+          defensor: turnoActivo === 1 ? carta2 : carta1,
+          vidaAtacante: turnoActivo === 1 ? vidaJ1 : vidaJ2,
+          vidaDefensor: turnoActivo === 1 ? vidaJ2 : vidaJ1,
+          setVidaAtacante: turnoActivo === 1 ? setVidaJ1 : setVidaJ2,
+          setVidaDefensor: turnoActivo === 1 ? setVidaJ2 : setVidaJ1,
+          setLogs,
+          setGanador
+      });
+
+      if (juegoTerminado) return;
+
     } else {
-      // PROCESAR META DEFENSIVA
       const metaDef = atacante.tipoDefensiva?.toLowerCase() || 'escudo';
+      const nombreDefensiva = atacante.habilidadDefensiva?.nombre || 'Defensa Absoluta';
 
       if (metaDef === 'esquivar') {
         if (turnoActivo === 1) setEvasionActivaJ1(true);
         else setEvasionActivaJ2(true);
-        setLogs((prev) => [...prev, `💨 ¡${atacante.name} adopta una postura ágil! 50% de probabilidad de esquivar el próximo golpe.`]);
+        setLogs((prev) => [...prev, `💨 ¡${atacante.name} activa [${nombreDefensiva}]! 50% de probabilidad de esquivar el próximo golpe.`]);
       } else {
-        // Escudo por defecto
         if (turnoActivo === 1) setEscudoActivoJ1(true);
         else setEscudoActivoJ2(true);
-        setLogs((prev) => [...prev, `🛡️ ¡${atacante.name} levanta una barrera! Su defensa se duplica temporalmente.`]);
+        setLogs((prev) => [...prev, `🛡️ ¡${atacante.name} levanta [${nombreDefensiva}]! Su defensa se duplica temporalmente.`]);
       }
     }
 
     // Cooldowns e intercambio de turnos
     if (turnoActivo === 1) {
-      if (tipoSlot === 'ofensiva') setCdOfensivaJ1(3);
+      if (tipoSlot === 'suprema') setCdSupremaJ1(4);
+      else if (tipoSlot === 'ofensiva') setCdOfensivaJ1(3);
       else setCdDefensivaJ1(2);
       cambiarTurno(2);
     } else {
-      if (tipoSlot === 'ofensiva') setCdOfensivaJ2(3);
+      if (tipoSlot === 'suprema') setCdSupremaJ2(4);
+      else if (tipoSlot === 'ofensiva') setCdOfensivaJ2(3);
       else setCdDefensivaJ2(2);
       cambiarTurno(1);
     }
@@ -220,7 +232,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
       {/* Botón Salir */}
       <button 
         onClick={salirDeBatalla}
-        className="absolute top-5 left-5 bg-orange-950/40 border border-orange-900/40 hover:bg-orange-900/60 text-orange-400 hover:text-orange-200 px-4 py-2 rounded-xl transition text-xs font-black tracking-wider cursor-pointer backdrop-blur-md"
+        className="absolute top-5 left-5 bg-orange-950/40 border border-orange-900/40 hover:bg-orange-900/60 text-orange-400 hover:text-orange-200 px-4 py-2 rounded-xl transition text-xs font-black tracking-wider cursor-pointer backdrop-blur-md z-20"
       >
         ⬅️ Salir de la Arena
       </button>
@@ -242,7 +254,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
       </div>
 
       {/* PANEL DE ENFRENTAMIENTO */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 my-6">
+      <div className="w-full max-w-5xl flex flex-col md:flex-row items-stretch justify-center gap-6 md:gap-10 my-6">
         
         {/* CONTENDIENTE J1 */}
         {carta1 && (
@@ -258,8 +270,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
               </div>
             </div>
 
-            <div className="bg-black/50 border border-neutral-900 rounded-xl p-3 flex flex-col gap-3 relative">
-              {/* Badges de Buffs */}
+            <div className="bg-black/50 border border-neutral-900 rounded-xl p-3 flex flex-col gap-3 relative flex-1">
               {escudoActivoJ1 && <span className="absolute top-2 right-2 bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">🛡️ Escudo</span>}
               {evasionActivaJ1 && <span className="absolute top-2 right-2 bg-purple-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">💨 Ágil</span>}
 
@@ -272,7 +283,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                 <p className="text-[10px] text-neutral-500 italic truncate mt-1">{carta1.descripcion || "Sin descripción de combate."}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-center text-xs">
+              <div className="grid grid-cols-2 gap-2 text-center text-xs mt-auto">
                 <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg p-1.5">
                   <div className="text-[8px] text-orange-400 font-black uppercase tracking-widest">⚔️ ATK</div>
                   <div className="font-bold font-mono text-white">{carta1.ataque.toLocaleString()}</div>
@@ -305,8 +316,8 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                   >
                     {cdOfensivaJ1 > 0 ? `⏳ ${cdOfensivaJ1}` : (
                       <>
-                        {carta1.tipoUlti?.toLowerCase() === 'curacion' ? <RiHeartPulseLine /> : <RiShieldFlashLine />}
-                        <span>ULTI ({carta1.tipoUlti || 'Daño'})</span>
+                        {carta1.tipoUlti?.toString().toLowerCase() === 'curacion' || carta1.tipoUlti?.toString().toLowerCase() === 'curación' ? <RiHeartPulseLine /> : <RiShieldFlashLine />}
+                        <span>{carta1.habilidadOfensiva?.nombre || 'Clase CD'}</span>
                       </>
                     )}
                   </button>
@@ -320,19 +331,36 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                     {cdDefensivaJ1 > 0 ? `⏳ ${cdDefensivaJ1}` : (
                       <>
                         <RiCompassDiscoverLine />
-                        <span>{carta1.tipoDefensiva || 'Defensa'}</span>
+                        <span>{carta1.habilidadDefensiva?.nombre || 'Defensa'}</span>
                       </>
                     )}
                   </button>
                 </div>
+                {/* NUEVA ULTI DE FAMILIA */}
+                <button 
+                  onClick={() => usarHabilidadEspecial('suprema')}
+                  disabled={cdSupremaJ1 > 0}
+                  className={`w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-tight italic transition cursor-pointer truncate px-2 flex items-center justify-center gap-1.5 ${
+                    cdSupremaJ1 > 0 
+                      ? "bg-neutral-900 text-neutral-600 border border-neutral-800" 
+                      : "bg-gradient-to-r from-purple-900/80 to-indigo-950/80 hover:from-purple-800 hover:to-indigo-900 text-purple-300 border border-purple-500/40 shadow-md shadow-purple-950/40"
+                  }`}
+                >
+                  {cdSupremaJ1 > 0 ? `🔮 CD SUPREMA: ${cdSupremaJ1}` : (
+                    <>
+                      <RiFlashlightLine className="animate-pulse text-purple-400" />
+                      <span>✨ {carta1.ultiSeleccionada?.nombre || 'Suprema Mítica'}</span>
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
         )}
 
         {/* CONTENEDOR VS */}
-        <div className="text-center py-4">
-          <span className="text-6xl font-black italic tracking-tighter bg-gradient-to-b from-orange-400 via-amber-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(249,115,22,0.3)] select-none">VS</span>
+        <div className="flex items-center justify-center py-2 md:py-0">
+          <span className="text-5xl md:text-6xl font-black italic tracking-tighter bg-gradient-to-b from-orange-400 via-amber-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(249,115,22,0.3)] select-none">VS</span>
         </div>
 
         {/* CONTENDIENTE J2 */}
@@ -349,8 +377,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
               </div>
             </div>
 
-            <div className="bg-black/50 border border-neutral-900 rounded-xl p-3 flex flex-col gap-3 relative">
-              {/* Badges de Buffs */}
+            <div className="bg-black/50 border border-neutral-900 rounded-xl p-3 flex flex-col gap-3 relative flex-1">
               {escudoActivoJ2 && <span className="absolute top-2 right-2 bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">🛡️ Escudo</span>}
               {evasionActivaJ2 && <span className="absolute top-2 right-2 bg-purple-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">💨 Ágil</span>}
 
@@ -363,7 +390,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                 <p className="text-[10px] text-neutral-500 italic truncate mt-1">{carta2.descripcion || "Sin descripción de combate."}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-center text-xs">
+              <div className="grid grid-cols-2 gap-2 text-center text-xs mt-auto">
                 <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg p-1.5">
                   <div className="text-[8px] text-orange-400 font-black uppercase tracking-widest">⚔️ ATK</div>
                   <div className="font-bold font-mono text-white">{carta2.ataque.toLocaleString()}</div>
@@ -396,8 +423,8 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                   >
                     {cdOfensivaJ2 > 0 ? `⏳ ${cdOfensivaJ2}` : (
                       <>
-                        {carta2.tipoUlti?.toLowerCase() === 'curacion' ? <RiHeartPulseLine /> : <RiShieldFlashLine />}
-                        <span>ULTI ({carta2.tipoUlti || 'Daño'})</span>
+                        {carta2.tipoUlti?.toString().toLowerCase() === 'curacion' || carta2.tipoUlti?.toString().toLowerCase() === 'curación' ? <RiHeartPulseLine /> : <RiShieldFlashLine />}
+                        <span>{carta2.habilidadOfensiva?.nombre || 'Clase CD'}</span>
                       </>
                     )}
                   </button>
@@ -411,11 +438,28 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
                     {cdDefensivaJ2 > 0 ? `⏳ ${cdDefensivaJ2}` : (
                       <>
                         <RiCompassDiscoverLine />
-                        <span>{carta2.tipoDefensiva || 'Defensa'}</span>
+                        <span>{carta2.habilidadDefensiva?.nombre || 'Defensa'}</span>
                       </>
                     )}
                   </button>
                 </div>
+                {/* NUEVA ULTI DE FAMILIA */}
+                <button 
+                  onClick={() => usarHabilidadEspecial('suprema')}
+                  disabled={cdSupremaJ2 > 0}
+                  className={`w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-tight italic transition cursor-pointer truncate px-2 flex items-center justify-center gap-1.5 ${
+                    cdSupremaJ2 > 0 
+                      ? "bg-neutral-900 text-neutral-600 border border-neutral-800" 
+                      : "bg-gradient-to-r from-purple-900/80 to-indigo-950/80 hover:from-purple-800 hover:to-indigo-900 text-purple-300 border border-purple-500/40 shadow-md shadow-purple-950/40"
+                  }`}
+                >
+                  {cdSupremaJ2 > 0 ? `🔮 CD SUPREMA: ${cdSupremaJ2}` : (
+                    <>
+                      <RiFlashlightLine className="animate-pulse text-purple-400" />
+                      <span>✨ {carta2.ultiSeleccionada?.nombre || 'Suprema Mítica'}</span>
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
