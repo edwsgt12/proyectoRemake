@@ -34,9 +34,9 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
   const colorRGB = configActual.rgb;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm overflow-y-auto">
       <div 
-        className="bg-gradient-to-br from-gray-900 to-black rounded-2xl max-w-2xl w-full p-8 text-white relative animate-fadeIn transition-all duration-300"
+        className="bg-gradient-to-br from-gray-900 to-black rounded-2xl max-w-2xl w-full p-6 md:p-8 text-white relative animate-fadeIn transition-all duration-300 my-auto overflow-hidden shadow-2xl"
         style={{
           border: `2px solid rgb(${colorRGB})`,
           boxShadow: `0 0 40px rgba(${colorRGB}, 0.25)`
@@ -46,20 +46,20 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
         {/* Botón de cerrar adaptado al color dinámico */}
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 text-2xl ${configActual.texto} hover:opacity-80 transition-opacity z-10`}
+          className={`absolute top-4 right-4 text-xl ${configActual.texto} hover:opacity-80 transition-opacity z-20 cursor-pointer bg-black/40 w-8 h-8 rounded-full flex items-center justify-center border border-white/10`}
         >
           ✕
         </button>
 
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           
           {/* COLUMNA IZQUIERDA: IMAGEN + TIPO + ULTI ESPECIAL */}
-          <div className="flex-shrink-0 flex flex-col gap-3 w-full md:w-64">
-            <div className="relative">
+          <div className="md:col-span-5 flex flex-col gap-3 w-full">
+            <div className="relative w-full">
               <img
-                src={carta.img}
+                src={carta.img || carta.img}
                 alt={carta.name}
-                className="w-full h-80 object-cover rounded-xl border-2 border-gray-700 shadow-2xl"
+                className="w-full h-72 md:h-80 object-cover rounded-xl border-2 border-gray-700 shadow-2xl"
               />
               <div className="absolute -bottom-2 left-4 right-4 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
                 <div 
@@ -71,7 +71,7 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
 
             {/* TIPO DE CARTA con estilo dinámico */}
             <div 
-              className="py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5"
+              className="py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 mt-2"
               style={{ 
                 backgroundColor: `rgba(${colorRGB}, 0.08)`, 
                 border: `1px solid rgba(${colorRGB}, 0.25)` 
@@ -103,86 +103,93 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
           </div>
 
           {/* COLUMNA DERECHA: INFORMACIÓN Y STATS */}
-          <div className="flex-1 flex flex-col relative">
+          <div className="md:col-span-7 flex flex-col justify-between h-full min-w-0">
             
-            {/* Cabecera con Insignia de Nivel y Rango Dinámico */}
-            <div className="flex items-center gap-3 mb-4">
-              <span 
-                className={`font-black rounded-full px-3 py-1 flex items-center justify-center text-xs tracking-wider font-mono shadow-md ${configActual.texto}`}
-                style={{ 
-                  backgroundColor: `rgba(${colorRGB}, 0.15)`, 
-                  border: `1px solid rgba(${colorRGB}, 0.4)` 
-                }}
-              >
-                #{carta.id} • LV{nivel} {configActual.titulo}
-              </span>
-              <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter truncate">
-                {carta.name}
-              </h2>
-            </div>
-
-            {/* Stats Organizados: Vida arriba de Ataque/Defensa */}
-            <div className="flex flex-col gap-2 mb-4">
-              
-              {/* VIDA */}
-              <div className="flex items-center justify-between bg-green-500/10 p-3 rounded-xl border border-green-500/30">
-                <div className="flex items-center gap-2 text-green-500 font-black italic text-xs tracking-widest">
-                  ❤️ VIDA (HP)
+            <div>
+              {/* Cabecera con Insignia de Nivel y Rango Dinámico */}
+              <div className="flex flex-col gap-2 mb-4 pr-8">
+                <div className="flex items-center">
+                  <span 
+                    className={`font-black rounded-full px-2.5 py-0.5 text-[10px] tracking-wider font-mono shadow-md ${configActual.texto}`}
+                    style={{ 
+                      backgroundColor: `rgba(${colorRGB}, 0.15)`, 
+                      border: `1px solid rgba(${colorRGB}, 0.4)` 
+                    }}
+                  >
+                    #{carta.id} • LV{nivel} {configActual.titulo}
+                  </span>
                 </div>
-                <div className="text-2xl font-black text-green-400 font-mono">
-                  {carta.vida || "100"}
+
+                <h2 className="text-xl md:text-2xl font-black text-white italic uppercase tracking-tight break-words leading-tight">
+                  {carta.name}
+                </h2>
+              </div>
+
+              {/* Stats Organizados: Vida arriba de Ataque/Defensa */}
+              <div className="flex flex-col gap-2 mb-3">
+                
+                {/* VIDA */}
+                <div className="flex items-center justify-between bg-green-500/10 p-2.5 rounded-xl border border-green-500/30">
+                  <div className="flex items-center gap-2 text-green-500 font-black italic text-xs tracking-widest">
+                    ❤️ VIDA (HP)
+                  </div>
+                  <div className="text-xl font-black text-green-400 font-mono">
+                    {carta.vida || "100"}
+                  </div>
+                </div>
+
+                {/* ATAQUE Y DEFENSA */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center bg-red-500/10 p-2 rounded-xl border border-red-500/30">
+                    <div className="text-[9px] text-red-500/70 font-black mb-0.5 tracking-widest uppercase">⚔️ Ataque</div>
+                    <div className="text-lg font-black text-white font-mono">{carta.ataque}</div>
+                  </div>
+                  <div className="text-center bg-blue-500/10 p-2 rounded-xl border border-blue-500/30">
+                    <div className="text-[9px] text-blue-500/70 font-black mb-0.5 tracking-widest uppercase">🛡️ Defensa</div>
+                    <div className="text-lg font-black text-white font-mono">{carta.defensa}</div>
+                  </div>
                 </div>
               </div>
 
-              {/* ATAQUE Y DEFENSA */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center bg-red-500/10 p-2 rounded-xl border border-red-500/30">
-                  <div className="text-[9px] text-red-500/70 font-black mb-0.5 tracking-widest uppercase">⚔️ Ataque</div>
-                  <div className="text-xl font-black text-white font-mono">{carta.ataque}</div>
-                </div>
-                <div className="text-center bg-blue-500/10 p-2 rounded-xl border border-blue-500/30">
-                  <div className="text-[9px] text-blue-500/70 font-black mb-0.5 tracking-widest uppercase">🛡️ Defensa</div>
-                  <div className="text-xl font-black text-white font-mono">{carta.defensa}</div>
+              {/* Meta Defensiva */}
+              <div className="mb-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <RiShieldLine /> Meta Defensiva
+                </span>
+                <span className="font-black text-blue-300 uppercase italic text-[10px]">{carta.tipoDefensiva || 'Escudo'}</span>
+              </div>
+
+              {/* Descripción */}
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 relative mb-4">
+                <h3 className="text-[10px] font-black mb-1 text-white/40 flex items-center gap-1.5 tracking-[0.2em]">
+                  <span>📖</span> DESCRIPCIÓN
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-xs italic max-h-24 overflow-y-auto pr-1">
+                  {carta.descripcion || "Descripción no disponible."}
+                </p>
+
+                {/* Botón Editar dentro de la descripción */}
+                <div className="flex justify-end mt-2">
+                  <Link to={`/editar/${carta.id}`}>
+                    <button
+                      className="px-2.5 py-1 rounded-lg text-black text-[9px] font-black flex items-center gap-1 shadow-lg transition-all cursor-pointer active:scale-95 uppercase italic tracking-tighter"
+                      style={{
+                        backgroundColor: `rgb(${colorRGB})`,
+                        boxShadow: `0 2px 10px rgba(${colorRGB}, 0.3)`
+                      }}
+                    >
+                      <FaPlus className="text-[8px]" />
+                      <span>Editar Carta</span>
+                    </button>
+                  </Link>
                 </div>
               </div>
-            </div>
-
-            {/* Meta Defensiva */}
-            <div className="mb-4 bg-white/5 px-3 py-2 rounded-xl border border-white/5 flex items-center justify-between text-xs">
-              <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <RiShieldLine /> Meta Defensiva
-              </span>
-              <span className="font-black text-blue-300 uppercase italic text-[11px]">{carta.tipoDefensiva || 'Escudo'}</span>
-            </div>
-
-            {/* Descripción */}
-            <div className="bg-white/5 p-4 pb-14 rounded-xl border border-white/5 flex-grow relative overflow-hidden">
-              <h3 className="text-xs font-black mb-2 text-white/30 flex items-center gap-2 tracking-[0.2em]">
-                <span>📖</span> DESCRIPCIÓN
-              </h3>
-              <p className="text-gray-300 leading-relaxed text-xs italic">
-                {carta.descripcion || "Descripción no disponible."}
-              </p>
-
-              {/* Botón Editar con acento de color del rango */}
-              <Link to={`/editar/${carta.id}`} className="absolute bottom-3 right-3">
-                <button
-                  className="px-3 py-1.5 rounded-lg text-black text-[9px] font-black flex items-center gap-1.5 shadow-lg transition-all cursor-pointer active:scale-95 uppercase italic tracking-tighter"
-                  style={{
-                    backgroundColor: `rgb(${colorRGB})`,
-                    boxShadow: `0 4px 14px rgba(${colorRGB}, 0.3)`
-                  }}
-                >
-                  <FaPlus className="text-[8px]" />
-                  <span>Editar Carta</span>
-                </button>
-              </Link>
             </div>
 
             {/* Footer del Modal */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-auto">
               {/* Puntos decorativos */}
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-red-500/50"></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500/50"></div>
@@ -194,10 +201,10 @@ function Modal({ carta, onClose, seleccionarCartaParaBatalla, estaSeleccionada }
                   seleccionarCartaParaBatalla(carta);
                   onClose();
                 }}
-                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase italic tracking-tighter transition-all active:scale-95 shadow-md cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase italic tracking-tighter transition-all active:scale-95 shadow-md cursor-pointer ${
                   estaSeleccionada
                     ? "bg-red-950 text-red-400 border border-red-500/40 hover:bg-red-900"
-                    : "bg-blue-600 text-white border border-blue-400/20 hover:bg-blue-500 shadow-blue-500/10"
+                    : "bg-blue-600 text-white border border-blue-400/20 hover:bg-blue-500 shadow-blue-500/20"
                 }`}
               >
                 {estaSeleccionada ? "❌ Quitar de Batalla" : "⚔️ Elegir para Batalla"}
