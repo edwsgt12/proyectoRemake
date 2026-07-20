@@ -80,11 +80,6 @@ export const GenerarCartaIA = () => {
   const limitesActuales = LIMITES_POR_FAMILIA[familiaSeleccionada] || LIMITE_DEFECTO;
   const ultisDisponibles = DICCIONARIO_ULTIS_POR_FAMILIA[familiaSeleccionada] || [];
 
-  // === FUNCIÓN PARA REGRESAR AL HOME ===
-  const volverAlHome = () => {
-    // Integra aquí tu método de navegación (p.ej. setVista('home') o navigate('/'))
-    console.log("Cerrando vista de IA y regresando al home principal...");
-  };
 
   const handleFamiliaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevaFamilia = e.target.value as GrupoCarta;

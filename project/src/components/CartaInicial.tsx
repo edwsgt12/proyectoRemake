@@ -21,17 +21,24 @@ function Cartainicial({
     nivel = 1 
   } = carta;
 
-  // Definición de paletas exactas en formato RGB (r, g, b)
-  const PALETA_RGB: Record<number, { rgb: string; texto: string }> = {
-    1: { rgb: "34, 197, 94", texto: "text-green-400" },      // Nivel 1: Verde
-    2: { rgb: "59, 130, 246", texto: "text-blue-400" },     // Nivel 2: Azul
-    3: { rgb: "168, 85, 247", texto: "text-purple-400" },   // Nivel 3: Morado
-    4: { rgb: "148, 163, 184", texto: "text-slate-300" },   // Nivel 4: Plateado
-    5: { rgb: "245, 158, 11", texto: "text-amber-400" },     // Nivel 5: Dorado
+  // Rango de colores exactos RGB según el nivel (CADA 2 NIVELES HASTA NIVEL 10)
+  const getPaletaPorNivel = (lvl: number) => {
+    if (lvl >= 9) {
+      return { rgb: "239, 68, 68", texto: "text-red-500", titulo: "DIVINO" };      // Niv 9-10: Rojo Fuego
+    }
+    if (lvl >= 7) {
+      return { rgb: "234, 179, 8", texto: "text-yellow-400", titulo: "ÉPICO" };   // Niv 7-8: Dorado Neón
+    }
+    if (lvl >= 5) {
+      return { rgb: "168, 85, 247", texto: "text-purple-400", titulo: "ELITE" };  // Niv 5-6: Morado Místico
+    }
+    if (lvl >= 3) {
+      return { rgb: "59, 130, 246", texto: "text-blue-400", titulo: "RARO" };     // Niv 3-4: Azul Eléctrico
+    }
+    return { rgb: "34, 197, 94", texto: "text-green-400", titulo: "NOVATO" };     // Niv 1-2: Verde Esmeralda
   };
 
-  // Caída limpia si el nivel supera el rango esperado
-  const configActual = PALETA_RGB[nivel] || PALETA_RGB[5];
+  const configActual = getPaletaPorNivel(nivel);
   const colorRGB = configActual.rgb;
 
   return (
@@ -43,7 +50,7 @@ function Cartainicial({
         border: `2px solid rgb(${colorRGB})`,
         boxShadow: `0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 0px rgba(${colorRGB}, 0)`
       }}
-      // Modificamos el resplandor de la caja usando clases personalizadas o inyectando el hover en línea
+      // Resplandor dinamico de la caja según el nivel
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = `0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px 2px rgba(${colorRGB}, 0.35)`;
         e.currentTarget.style.transform = 'scale(1.05)';
@@ -77,17 +84,17 @@ function Cartainicial({
         </svg>
       </button>
 
-      {/* Indicador de Nivel */}
+      {/* Indicador de Nivel e insignia */}
       <div className="flex justify-between mt-4">
         <div 
-          className={`absolute top-3 left-3 ${configActual.texto} font-black rounded-full w-8 h-8 flex items-center justify-center text-[11px] shadow-md`}
+          className={`absolute top-3 left-3 ${configActual.texto} font-black rounded-full px-2.5 h-8 flex items-center justify-center text-[10px] tracking-wider shadow-md font-mono`}
           style={{ 
             backgroundColor: `rgba(${colorRGB}, 0.1)`, 
             border: `1px solid rgba(${colorRGB}, 0.3)` 
           }}
           title={`ID de la carta: #${id}`}
         >
-          LV{nivel}
+          LV{nivel} • {configActual.titulo}
         </div>
       </div>
 
@@ -96,12 +103,12 @@ function Cartainicial({
         <img 
           src={img} 
           alt={name} 
-          className="w-32 h-32 object-cover rounded-xl border-2 border-gray-700"
+          className="w-32 h-32 object-cover rounded-xl border-2 border-gray-700 shadow-md"
         />
       </div>
 
-      {/* Nombre del Personaje */}
-      <h2 className={`text-2xl font-bold text-center mb-1 ${configActual.texto} tracking-tighter uppercase italic`}>
+      {/* Nombre del Personaje con color dinámico de rango */}
+      <h2 className={`text-2xl font-bold text-center mb-1 ${configActual.texto} tracking-tighter uppercase italic truncate`}>
         {name}
       </h2>
 

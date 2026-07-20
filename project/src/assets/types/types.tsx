@@ -6,13 +6,13 @@ export interface Habilidad {
     valor: number; // Porcentaje o daño fijo
 }
 
-
 export interface Carta {
     id: number;
     name: string;
     ataque: number;
     defensa: number;
     nivel: number;
+    cristales: number; // 💎 Cristales propios de la carta
     img: string;
     descripcion: string;
     vida: number;
@@ -42,6 +42,7 @@ export interface IApiCard {
         grupo?: GrupoCarta;
         tipo: TipoCarta;
         nivel: number;
+        cristales?: number; // 💎 Persistencia de cristales
         tipoUlti: TipoHabilidadIA;
         tipoDefensiva: TipoHabilidadIA;
         ultiSeleccionada?: UltiAtaque; // Persistencia de la ulti en base de datos
@@ -65,10 +66,12 @@ export const toApiCardMaper = (carta: Carta) => {
         attributes: {
             grupo: carta.grupo,
             tipo: carta.tipo,
-            nivel: carta.nivel,
+            // 🛡️ Asegura que siempre se envíe un número válido (evita NaN o strings)
+            nivel: Number(carta.nivel) || 1,
+            cristales: Number(carta.cristales) || 0, // 💎 Mapeo seguro a la API
             tipoUlti: carta.tipoUlti,
             tipoDefensiva: carta.tipoDefensiva,
-            ultiSeleccionada: carta.ultiSeleccionada, // Mapea la ulti hacia el payload
+            ultiSeleccionada: carta.ultiSeleccionada, 
             habilidad: carta.habilidad, 
             habilidadOfensiva: carta.habilidadOfensiva,
             habilidadDefensiva: carta.habilidadDefensiva
@@ -99,13 +102,16 @@ export const toCardApiMaper = (apicard: IApiCard): Carta => {
         defensa: apicard.defense,
         vida: apicard.lifePoints,
         img: apicard.pictureUrl || "https://nombre.jpn",
-        nivel: apicard.attributes?.nivel || 1,
+        
+        // 🛡️ Convierte el nivel y cristales de forma segura
+        nivel: Number(apicard.attributes?.nivel) || 1,
+        cristales: Number(apicard.attributes?.cristales) || 0, // 💎 Recupera cristales o 0 por defecto
+        
         grupo: apicard.attributes?.grupo || 'Cónclave Arcano', 
         tipo: apicard.attributes?.tipo || 'Hechicero',
         tipoUlti: apicard.attributes?.tipoUlti || 'Daño',
         tipoDefensiva: apicard.attributes?.tipoDefensiva || 'Escudo',
         
-        // Recupera la ulti de los atributos guardados en la API
         ultiSeleccionada: apicard.attributes?.ultiSeleccionada,
 
         habilidad: habBase, 

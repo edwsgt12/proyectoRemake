@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { RiArrowUpCircleLine, RiFlashlightLine, RiShieldLine, RiHeartFill, RiCoinsLine } from "react-icons/ri";
+import { useNavigate } from "react-router";
+import { RiArrowUpCircleLine, RiFlashlightLine, RiShieldLine, RiHeartFill, RiCoinsLine, RiArrowLeftLine } from "react-icons/ri";
 import type { Carta } from "../assets/types/types";
-import { Link } from "react-router";
 import { FaTimes } from "react-icons/fa";
+import { Link } from "react-router";
 
 interface SubirNivelProps {
   cartas: Carta[];
@@ -13,25 +14,32 @@ interface SubirNivelProps {
 const NIVEL_MAXIMO = 10;
 
 export default function SubirNivelCarta({ cartas, setCartas, onSubirNivel }: SubirNivelProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [idCartaSeleccionada, setIdCartaSeleccionada] = useState<number | string>(cartas[0]?.id || '');
 
   if (!cartas || cartas.length === 0) {
     return (
-      <div className="w-full max-w-md mx-auto my-10 p-6 bg-[#111111] border border-white/10 rounded-2xl text-center text-gray-400 font-mono">
-        No tienes cartas disponibles para mejorar.
+      <div className="w-full max-w-md mx-auto my-10 p-6 bg-[#111111] border border-white/10 rounded-2xl text-center text-gray-400 font-mono flex flex-col items-center gap-4">
+        <p>No tienes cartas disponibles para mejorar.</p>
+        <button 
+          onClick={() => navigate('/')} 
+          className="px-4 py-2 bg-amber-500 text-black font-bold rounded-xl text-xs uppercase tracking-wider cursor-pointer hover:bg-amber-400 transition"
+        >
+          Volver al Inicio
+        </button>
       </div>
     );
   }
 
-  // Carta individual seleccionada
+  // Carta seleccionada actual
   const carta = cartas.find(c => String(c.id) === String(idCartaSeleccionada)) || cartas[0];
 
   const nivelActual = carta.nivel || 1;
   const esNivelMax = nivelActual >= NIVEL_MAXIMO;
   const siguienteNivel = nivelActual + 1;
 
-  // Cálculo de costos y stats (+10% por nivel)
+  // Cálculos (+10% por nivel)
   const factorIncremento = 0.10;
   const costeAumento = Math.round(400 * Math.pow(1.5, nivelActual - 1));
   const cristalesUsuario = carta.cristales || 0;
@@ -71,27 +79,33 @@ export default function SubirNivelCarta({ cartas, setCartas, onSubirNivel }: Sub
   };
 
   return (
-    <div className="w-full max-w-md mx-auto my-6 bg-[#111111] border border-white/10 rounded-2xl p-6 text-gray-200 font-mono shadow-2xl">
-      <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+    <div className="w-full max-w-xl mx-auto my-6 bg-[#111111] border border-white/10 rounded-2xl p-6 text-gray-200 font-mono shadow-2xl relative">
+      
+      {/* Header con botón volver */}
+      <div className="flex items-center justify-between mb-6">
         <Link to={"/"}>
             <FaTimes className="text-yellow-400 shadow-2xl hover:scale-130 transition-transform cursor-pointer relative overflow-hidden" />
-        </Link> Laboratorio de Mejoras
-      </h3>
+        </Link>
+      </div>
 
-      {/* Vista previa de la Carta Seleccionada */}
-      <div className="mb-4 text-center bg-[#161616] p-4 rounded-xl border border-white/5">
-        {carta.img && (
+      {/* CARTA EN GRANDE */}
+      <div className="flex flex-col items-center mb-6 bg-[#161616] p-6 rounded-2xl border border-white/5 relative overflow-hidden">
+        <div className="relative group">
           <img 
             src={carta.img} 
             alt={carta.name} 
-            className="w-28 h-36 object-cover mx-auto rounded-lg mb-2 shadow-md border border-white/10" 
+            className="w-40 h-56 object-cover rounded-xl shadow-2xl border-2 border-amber-500/30 mb-3"
           />
-        )}
-        <h4 className="text-base font-black text-white">{carta.name}</h4>
-        <p className="text-[10px] text-amber-400 font-bold">💎 {cristalesUsuario} Cristales</p>
+          <span className="absolute top-2 right-2 bg-black/80 backdrop-blur-md text-amber-400 font-black text-[10px] px-2 py-0.5 rounded-full border border-amber-500/40">
+            LVL {nivelActual}
+          </span>
+        </div>
+
+        <h2 className="text-lg font-black text-white uppercase tracking-wider">{carta.name}</h2>
+        <p className="text-xs text-amber-400 font-bold mt-1">💎 {cristalesUsuario} Cristales</p>
       </div>
 
-      {/* Panel de Nivel */}
+      {/* Rango / Progresión */}
       <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl mb-4">
         <div>
           <p className="text-[10px] text-white/40 uppercase">Rango Actual</p>
@@ -136,12 +150,12 @@ export default function SubirNivelCarta({ cartas, setCartas, onSubirNivel }: Sub
         </div>
       )}
 
-      {/* Botón de Acción para subir nivel */}
+      {/* Botón Mejorar */}
       {!esNivelMax && (
         <button
           onClick={handleSubirNivel}
           disabled={!tieneFondos || loading}
-          className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all mb-6 ${
+          className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all mb-2 ${
             tieneFondos 
               ? 'bg-amber-500 hover:bg-amber-400 text-[#0a0a0a] shadow-lg shadow-amber-500/10 cursor-pointer' 
               : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
@@ -156,41 +170,47 @@ export default function SubirNivelCarta({ cartas, setCartas, onSubirNivel }: Sub
           )}
         </button>
       )}
-      
+
       {!tieneFondos && !esNivelMax && (
-        <p className="text-[9px] text-red-500 text-center -mt-4 mb-6 uppercase italic tracking-tighter">
+        <p className="text-[9px] text-red-500 text-center mb-6 uppercase italic tracking-tighter">
           ❌ Cristales insuficientes (Tienes: {cristalesUsuario} / Requieres: {costeAumento})
         </p>
       )}
 
-      {/* Carrusel / Lista de Cartas en Miniatura abajo */}
+      {/* CARTA CHIQUITAS ABAJO (CARRUSEL) */}
       <div className="pt-4 border-t border-white/10">
-        <label className="text-[10px] text-white/40 uppercase block mb-2">Seleccionar otra carta</label>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10">
+        <label className="text-[10px] text-white/40 uppercase block mb-3 font-bold tracking-wider">
+          Tus Cartas (Haz clic para seleccionar):
+        </label>
+        
+        <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-amber-500/20">
           {cartas.map((c) => {
             const esSeleccionada = String(c.id) === String(carta.id);
             return (
               <button
                 key={c.id}
                 onClick={() => setIdCartaSeleccionada(c.id)}
-                className={`flex-shrink-0 p-1.5 rounded-xl border transition-all text-left cursor-pointer ${
+                className={`flex-shrink-0 p-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center ${
                   esSeleccionada
-                    ? 'border-amber-500 bg-amber-500/10 scale-105'
-                    : 'border-white/10 bg-[#161616] opacity-60 hover:opacity-100'
+                    ? 'border-amber-500 bg-amber-500/10 scale-105 shadow-md shadow-amber-500/20'
+                    : 'border-white/10 bg-[#161616] opacity-50 hover:opacity-100 hover:border-white/30'
                 }`}
               >
-                {c.img ? (
-                  <img src={c.img} alt={c.name} className="w-12 h-16 object-cover rounded-lg mb-1" />
-                ) : (
-                  <div className="w-12 h-16 bg-white/5 rounded-lg mb-1 flex items-center justify-center text-[8px] text-white/40">Sin foto</div>
-                )}
-                <p className="text-[9px] font-bold text-white truncate max-w-[50px]">{c.name}</p>
-                <p className="text-[8px] text-amber-400">LVL {c.nivel || 1}</p>
+                <img 
+                  src={c.img} 
+                  alt={c.name} 
+                  className="w-14 h-20 object-cover rounded-lg mb-1.5" 
+                />
+                <p className="text-[10px] font-bold text-white truncate max-w-[60px] text-center">{c.name}</p>
+                <span className="text-[8px] font-black text-amber-400 bg-black/60 px-1.5 py-0.5 rounded mt-1">
+                  LVL {c.nivel || 1}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
+
     </div>
   );
 }

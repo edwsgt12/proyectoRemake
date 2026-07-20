@@ -6,10 +6,12 @@ import { aplicarEfectoUlti } from '../components/batallaEfectos';
 
 interface CampoBatallaProps {
   cartas: Carta[];
+  setCartas?: React.Dispatch<React.SetStateAction<Carta[]>>;
   setCartasSeleccionadas: (cartas: Carta[]) => void;
+  onVictoria?: (cartaGanadora: Carta, cristalesGanados: number) => void;
 }
 
-export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBatallaProps) {
+export default function CampoBatalla({ cartas, setCartas, setCartasSeleccionadas, onVictoria }: CampoBatallaProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +52,35 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+  // --- REGISTRO Y SUMA DE CRISTALES AL GANADOR (+200) ---
+  const procesarVictoria = (cartaGanadora: Carta, cartaDerrotada: Carta) => {
+    const cristalesGanados = 200;
+
+    // 1. Actualizamos el estado del ganador en el componente
+    setGanador(cartaGanadora);
+
+    // 2. Ejecutamos la función de victoria global si existe o actualizamos cartas localmente
+    if (onVictoria) {
+      onVictoria(cartaGanadora, cristalesGanados);
+    } else if (setCartas) {
+      setCartas(prevCartas => 
+        prevCartas.map(c => 
+          c.id === cartaGanadora.id 
+            ? { ...c, cristales: (c.cristales || 0) + cristalesGanados }
+            : c
+        )
+      );
+    }
+
+    // 3. Añadimos los logs con los 200 Cristales
+    setLogs((prev) => [
+      ...prev, 
+      `💀 ¡${cartaDerrotada.name} ha sido incinerado!`, 
+      `🏆 ¡${cartaGanadora.name.toUpperCase()} REINA EN LA ARENA!`,
+      `💎 ¡${cartaGanadora.name} ha obtenido +200 Cristales de Victoria!`
+    ]);
+  };
 
   // --- SISTEMA DE INICIATIVA ---
   useEffect(() => {
@@ -129,8 +160,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
       const nuevaVida = Math.max(0, vidaJ2 - danoFinal);
       setVidaJ2(nuevaVida);
       if (nuevaVida <= 0) {
-        setGanador(carta1);
-        setLogs((prev) => [...prev, `💀 ¡${carta2.name} ha sido incinerado!`, `🏆 ¡${carta1.name.toUpperCase()} REINA EN LA ARENA!`]);
+        procesarVictoria(carta1, carta2);
       } else {
         cambiarTurno(2);
       }
@@ -138,8 +168,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
       const nuevaVida = Math.max(0, vidaJ1 - danoFinal);
       setVidaJ1(nuevaVida);
       if (nuevaVida <= 0) {
-        setGanador(carta2);
-        setLogs((prev) => [...prev, `💀 ¡${carta1.name} ha sido incinerado!`, `🏆 ¡${carta2.name.toUpperCase()} REINA EN LA ARENA!`]);
+        procesarVictoria(carta2, carta1);
       } else {
         cambiarTurno(1);
       }
@@ -151,6 +180,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
     if (ganador || turnoActivo === null) return;
 
     const atacante = turnoActivo === 1 ? carta1 : carta2;
+    const defensor = turnoActivo === 1 ? carta2 : carta1;
     
     if (tipoSlot === 'suprema') {
       const nombreSuprema = atacante.ultiSeleccionada?.nombre || 'Habilidad Suprema de Familia';
@@ -159,7 +189,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
           tipoUlti,
           nombreUlti: nombreSuprema,
           atacante,
-          defensor: turnoActivo === 1 ? carta2 : carta1,
+          defensor,
           vidaAtacante: turnoActivo === 1 ? vidaJ1 : vidaJ2,
           vidaDefensor: turnoActivo === 1 ? vidaJ2 : vidaJ1,
           setVidaAtacante: turnoActivo === 1 ? setVidaJ1 : setVidaJ2,
@@ -168,7 +198,10 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
           setGanador
       });
 
-      if (juegoTerminado) return;
+      if (juegoTerminado) {
+        procesarVictoria(atacante, defensor);
+        return;
+      }
 
     } else if (tipoSlot === 'ofensiva') {
       const tipoUlti = atacante.tipoUlti || 'daño';
@@ -178,7 +211,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
           tipoUlti,
           nombreUlti,
           atacante,
-          defensor: turnoActivo === 1 ? carta2 : carta1,
+          defensor,
           vidaAtacante: turnoActivo === 1 ? vidaJ1 : vidaJ2,
           vidaDefensor: turnoActivo === 1 ? vidaJ2 : vidaJ1,
           setVidaAtacante: turnoActivo === 1 ? setVidaJ1 : setVidaJ2,
@@ -187,7 +220,10 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
           setGanador
       });
 
-      if (juegoTerminado) return;
+      if (juegoTerminado) {
+        procesarVictoria(atacante, defensor);
+        return;
+      }
 
     } else {
       const metaDef = atacante.tipoDefensiva?.toLowerCase() || 'escudo';
@@ -247,9 +283,14 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
             </h2>
           </div>
         ) : (
-          <h2 className="text-3xl md:text-4xl font-black text-orange-500 tracking-widest uppercase animate-bounce drop-shadow-[0_0_25px_rgba(249,115,22,0.4)]">
-            🏆 ¡Victoria de {ganador.name}! 🏆
-          </h2>
+          <div className="flex flex-col items-center gap-1">
+            <h2 className="text-3xl md:text-4xl font-black text-orange-500 tracking-widest uppercase animate-bounce drop-shadow-[0_0_25px_rgba(249,115,22,0.4)]">
+              🏆 ¡Victoria de {ganador.name}! 🏆
+            </h2>
+            <span className="text-cyan-400 text-sm font-black font-mono tracking-wider animate-pulse">
+              💎 +200 Cristales Obtenidos para {ganador.name}
+            </span>
+          </div>
         )}
       </div>
 
@@ -474,6 +515,7 @@ export default function CampoBatalla({ cartas, setCartasSeleccionadas }: CampoBa
           {logs.map((log, index) => {
             let claseColor = "text-neutral-400";
             if (log.includes("🏆")) claseColor = "text-orange-400 font-bold bg-orange-500/5 border border-orange-500/20 p-2 text-center uppercase tracking-widest my-1 rounded-lg";
+            else if (log.includes("💎")) claseColor = "text-cyan-400 font-bold text-center tracking-wider italic";
             else if (log.includes("💥") || log.includes("⚡")) claseColor = "text-red-400 font-bold";
             else if (log.includes("🔥")) claseColor = "text-orange-300 font-medium italic";
             else if (log.includes("✨") || log.includes("🛡️") || log.includes("❤️") || log.includes("💨")) claseColor = "text-amber-400 italic font-medium";

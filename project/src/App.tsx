@@ -3,12 +3,13 @@ import './App.css'
 import type { Carta, IApiCard } from './assets/types/types'
 import FormularioCarta from './components/crearCarta'
 import EditarCarta from './components/actualizarCarta'
-import { Route, Routes, useNavigate, useLocation } from 'react-router' // 👈 Agregamos useLocation
+import { Route, Routes, useNavigate, useLocation } from 'react-router'
 import Home from './pages/Home'
 import CampoBatalla from './pages/CampoBatalla'
 import { toApiCardMaper, toCardApiMaper } from './assets/types/types'
 import SeleccionarCartas from './components/SeleccionarCarta'
 import GenerarCartaIA from './components/generarCarta'
+import SubirNivelCarta from './components/SubirNivelCarta'
 
 const API_URL = import.meta.env.VITE_CARTAS;
 
@@ -18,7 +19,7 @@ function App() {
   
   const [cartasSeleccionadas, setCartasSeleccionadas] = useState<Carta[]>([]);
   const navigate = useNavigate();
-  const location = useLocation(); // 👈 Inicializamos el hook para saber la ruta actual
+  const location = useLocation();
 
   const seleccionarCartaParaBatalla = (carta: Carta) => {
     setCartasSeleccionadas((prev) => {
@@ -96,13 +97,59 @@ function App() {
     }
   };
 
-  // ⚔️ Evaluamos si hay 2 cartas elegidas Y NO estamos en el campo de batalla
+  // 🆙 Subir nivel o descontar cristales persistiendo en la API
+  const subirNivelCarta = async (cartaConNuevoNivel: Carta) => {
+    try {
+      const response = await fetch(`${API_URL}/card/${cartaConNuevoNivel.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          usersecretpasskey: "Edwa735923IA"
+        },
+        body: JSON.stringify(toApiCardMaper(cartaConNuevoNivel)),
+      });
+
+      if (response.ok) {
+        await fetchCartas();
+        return { success: true };
+      }
+      return { success: false };
+    } catch (e) {
+      console.error("Error al subir de nivel en la API:", e);
+      return { success: false };
+    }
+  };
+
+  // 💎 REGISTRAR CRISTALES GANADOS EN LA BATALLA (Guarda directamente en la API)
+  const actualizarCristalesVictoria = async (cartaGanadora: Carta, cristalesGanados: number) => {
+    const cartaActualizada: Carta = {
+      ...cartaGanadora,
+      cristales: (cartaGanadora.cristales || 0) + cristalesGanados
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/card/${cartaGanadora.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          usersecretpasskey: "Edwa735923IA"
+        },
+        body: JSON.stringify(toApiCardMaper(cartaActualizada)),
+      });
+
+      if (res.ok) {
+        await fetchCartas(); // Recarga el listado global con los cristales al día
+      }
+    } catch (e) {
+      console.error("Error al actualizar cristales de la victoria en la API:", e);
+    }
+  };
+
   const mostrarBotónBatalla = cartasSeleccionadas.length === 2 && location.pathname !== '/campo-batalla';
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-800 to-black py-8 px-20 relative'>
       
-      {/* ⚔️ El botón flotante ahora se oculta de forma inteligente */}
       {mostrarBotónBatalla && (
         <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50">
           <button
@@ -141,7 +188,18 @@ function App() {
         <Route 
           path='/generar-carta-ia' 
           element={<GenerarCartaIA />} 
-        />  
+        />
+
+        <Route 
+          path="/mejorar" 
+          element={
+            <SubirNivelCarta 
+              cartas={cartas} 
+              setCartas={setCartas} 
+              onSubirNivel={subirNivelCarta}
+            />
+          } 
+        />
 
         <Route
           path='/seleccionar-cartas'
@@ -154,6 +212,7 @@ function App() {
             <CampoBatalla 
               cartas={cartasSeleccionadas} 
               setCartasSeleccionadas={setCartasSeleccionadas} 
+              onVictoria={actualizarCristalesVictoria}
             />
           }
         />

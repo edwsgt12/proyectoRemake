@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiRobotLine, RiMagicLine, RiShieldLine, RiSwordLine } from "react-icons/ri";
+import { RiRobotLine, RiSparklingFill } from "react-icons/ri";
 import { FaPlus } from "react-icons/fa";
 import { Link } from "react-router";
 import type { Carta } from "../assets/types/types";
@@ -59,7 +59,7 @@ const ListaCartas = ({
           Cartas de <span className="text-yellow-400">Personajes</span>
         </h1>
 
-        <div className="flex items-center gap-x-4 w-full md:w-auto justify-end">    
+        <div className="flex items-center gap-x-3 w-full md:w-auto justify-end">    
           {/* Botón Creador Manual */}
           <Link to={"/crearCarta"} title="Crear carta manualmente">
             <button 
@@ -69,12 +69,21 @@ const ListaCartas = ({
             </button>
           </Link>
           
-          {/* Botón Generador IA - ¡Ahora Naranja y con Robotcito! 🤖 */}
+          {/* Botón Generador IA 🤖 */}
           <Link to={"/generar-carta-ia"} title="Generar carta con IA">
             <button 
               className="rounded-xl bg-amber-600 hover:bg-amber-500 text-[#0a0a0a] w-11 h-11 flex items-center justify-center shadow-lg shadow-amber-500/20 hover:scale-110 transition-all cursor-pointer border border-amber-500/30"
             > 
               <RiRobotLine className="text-xl font-bold"/> 
+            </button>
+          </Link>
+
+          {/* Botón Forja / Subir de Nivel ✨ */}
+          <Link to={"/mejorar"} title="Forja: Mejorar cartas y subir nivel">
+            <button 
+              className="rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white w-11 h-11 flex items-center justify-center shadow-lg shadow-orange-600/30 hover:scale-110 transition-all cursor-pointer border border-orange-400/40"
+            > 
+              <RiSparklingFill className="text-xl font-bold text-amber-300 animate-pulse"/> 
             </button>
           </Link>
           
