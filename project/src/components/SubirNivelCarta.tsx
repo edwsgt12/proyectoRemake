@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiArrowUpCircleLine, RiFlashlightLine, RiShieldLine, RiHeartFill, RiCoinsLine } from "react-icons/ri";
+import { RiFlashlightLine, RiShieldLine, RiHeartFill, RiCoinsLine } from "react-icons/ri";
 import type { Carta } from "../assets/types/types";
 import { Link } from "react-router";
 import { FaTimes } from "react-icons/fa";

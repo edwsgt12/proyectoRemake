@@ -1,8 +1,8 @@
 import type { Carta } from '../assets/types/types';
 
 interface AplicarUltiParams {
-    tipoUlti: string;      // Ej: 'Curación', 'Daño', 'Destrucción'
-    nombreUlti: string;    // Ej: 'Rayo Incinerador' (El nombre real de la ulti seleccionada)
+    tipoUlti: string;    
+    nombreUlti: string;    
     atacante: Carta;
     defensor: Carta;
     vidaAtacante: number;
@@ -17,8 +17,6 @@ export const aplicarEfectoUlti = ({
     tipoUlti,
     nombreUlti,
     atacante,
-    defensor,
-    vidaAtacante,
     setVidaAtacante,
     vidaDefensor,
     setVidaDefensor,

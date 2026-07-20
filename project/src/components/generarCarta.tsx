@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RiMagicLine, RiFlashlightLine, RiShieldLine, RiTeamLine, RiCloseLine } from "react-icons/ri";
+import { RiMagicLine, RiFlashlightLine, RiShieldLine, RiTeamLine } from "react-icons/ri";
 import { FaTimes } from "react-icons/fa";
 import { Link } from 'react-router';
 
